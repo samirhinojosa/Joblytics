@@ -1,0 +1,15 @@
+
+version: 2
+
+models:
+  - name: fct_spend_by_city
+    description: "Amount of money spent by city"
+    columns:
+      - name: city
+        description: "City name"
+        data_tests:
+          - not_null
+      - name: sum
+        description: "Amount of money spent"
+        data_tests:
+          - not_null

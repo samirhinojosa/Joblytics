@@ -1,0 +1,20 @@
+
+version: 2
+
+models:
+  - name: stg__addresses
+    description: "Company addresses"
+    columns:
+      - name: company_id
+        description: "Company ID"
+        data_tests:
+          - unique
+          - not_null
+      - name: address
+        description: "Company address"
+        data_tests:
+          - not_null
+      - name: total_spend
+        description: "Amount of money spent by the companny"
+        data_tests:
+          - not_null                

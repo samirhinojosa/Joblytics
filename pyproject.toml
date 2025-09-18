@@ -1,0 +1,28 @@
+[project]
+name = "dbt-learning"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Samir Hinojosa", email = "samirhinojosa@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "dbt-postgres (>=1.9.0,<2.0.0)",
+    "dbt-core (>=1.10.11,<2.0.0)",
+    "beautifulsoup4 (>=4.13.5,<5.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.group.dev.dependencies]
+jupyterlab = "^4.4.7"
+ipykernel = "^6.30.1"
+pandas = "^2.3.2"
+
