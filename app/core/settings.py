@@ -22,9 +22,7 @@ class Settings(BaseSettings):
         "name": "Apache 2.0",
         "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
     }
-    APP_DIR: str = str(Path(__file__).resolve().parent.parent)
-
-    
+    APP_DIR: Path = Path(__file__).resolve().parent.parent
 
     # General API information
     # OPENAPI_URL: str = "/openapi.json"
@@ -34,8 +32,7 @@ class Settings(BaseSettings):
     # FAST_API_VERSION: str = "0.0.1"
 
     ## User agents file
-    UA_FILE_DEFAULT: str = "/infrastructure/http/data/user_agents.txt"
-    UA_FILE: str = APP_DIR + UA_FILE_DEFAULT
+    UA_FILE_PATH: Path = APP_DIR / "infrastructure" / "http" / "data" / "user_agents.txt"
 
     class Config:
         env_file = ".env"    
