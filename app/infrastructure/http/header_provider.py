@@ -1,5 +1,6 @@
-from pydantic import BaseModel, ConfigDict, PrivateAttr, model_validator
+import random
 from pathlib import Path
+from pydantic import BaseModel, ConfigDict, PrivateAttr, model_validator
 from app.core.settings import get_settings
 
 
@@ -31,7 +32,11 @@ class RandomHeaderProvider(BaseModel):
         
         # Reading the file
         with p.open("r", encoding="utf-8", newline="") as f:
-            uas = [s for line in f if (s := line.strip()) and not s.startswith("#") and len(s) >= 60]
+            uas = [s for line in f 
+                   if (s := line.strip()) 
+                   and not s.startswith("#") 
+                   and len(s) >= 60
+                   and not any(tok in s.lower() for tok in ("mobile", "android", "iphone", "ipad"))]
 
         if not uas:
             raise ValueError("UA file is empty or only has comments/too-short lines.")
@@ -44,3 +49,11 @@ class RandomHeaderProvider(BaseModel):
         Return the UAs list loaded.
         """
         return list(self._uas)
+    
+    def header(self) -> dict[str, str]:
+        """
+        Return a random User-Agent picked
+        """
+        return {"User-Agent": random.choice(self._uas)}
+
+    

@@ -68,6 +68,13 @@ class LinkedinScrapper(BaseModel):
 
         return f"{base_url}?{urlencode(params, quote_via=quote_plus)}"
 
+
+# def fetch_jobs_until_success(url):
+#     got_200 = False
+#     while not got_200:
+#         response = requests.get(url, headers=get_random_user_agent())
+#         got_200 = response.status_code == 200
+#     return response
     
 
 
