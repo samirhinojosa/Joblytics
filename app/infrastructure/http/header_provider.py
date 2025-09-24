@@ -55,5 +55,3 @@ class RandomHeaderProvider(BaseModel):
         Return a random User-Agent picked
         """
         return {"User-Agent": random.choice(self._uas)}
-
-    

@@ -1,11 +1,8 @@
-import requests
-import random
 from enum import Enum
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Annotated, Optional
 from urllib.parse import urlencode, quote_plus
 from bs4 import BeautifulSoup
-
 
 class TimePosted(str, Enum):
     ALL = ""
@@ -37,9 +34,8 @@ class LinkedinScrapper(BaseModel):
     def _strip(cls, v: str) -> str:
         return v.strip()
 
-
     def generate_url(
-            self, *,
+            self,
             title: Optional[str] = None,
             location: Optional[str] = None,
             distance: Optional[int] = None,
@@ -67,15 +63,3 @@ class LinkedinScrapper(BaseModel):
             params["f_WT"] = rm
 
         return f"{base_url}?{urlencode(params, quote_via=quote_plus)}"
-
-
-# def fetch_jobs_until_success(url):
-#     got_200 = False
-#     while not got_200:
-#         response = requests.get(url, headers=get_random_user_agent())
-#         got_200 = response.status_code == 200
-#     return response
-    
-
-
-
