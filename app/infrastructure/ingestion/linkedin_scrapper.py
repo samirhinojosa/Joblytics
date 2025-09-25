@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, PrivateAttr
 from typing import Annotated, Optional
 from urllib.parse import urlencode, quote_plus
 from bs4 import BeautifulSoup
+from app.infrastructure.http.scrape_client import ScrapeClient
 from app.domain.exceptions import NoOffersFoundError
 
 class TimePosted(str, Enum):
@@ -43,15 +44,13 @@ class LinkedinScrapper(BaseModel):
             title: Optional[str] = None,
             location: Optional[str] = None,
             distance: Optional[int] = None,
+            offset: Optional[int] = None,
             time_posted: Optional[TimePosted] = None, 
             remote_mode: Optional[RemoteMode] = None
     ) -> str: 
         """
         Generate the Linkedin job search URL using the model values (and allowing for occasional overrides)
         """
-
-        BASE_URL = "https://www.linkedin.com/jobs/search"
-
         params = {
             "keywords" : (title or self.title),
             "location" : (location or self.location),
@@ -66,8 +65,17 @@ class LinkedinScrapper(BaseModel):
         if rm:
             params["f_WT"] = rm
 
+        if offset is not None:
+            BASE_URL = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
+            params["position"] = 1
+            params["pageNum"] = 0
+            params["start"] = offset
+        else:
+            BASE_URL = "https://www.linkedin.com/jobs/search"
+
         return f"{BASE_URL}?{urlencode(params, quote_via=quote_plus)}"
     
+
     def number_of_offers(
             self,
             response: requests.Response
@@ -82,13 +90,22 @@ class LinkedinScrapper(BaseModel):
     
     def fetching_offers(
             self,
-            response: requests.Response
     ) -> list[dict]:
         
+        url = self.generate_url()
+        scrape_client = ScrapeClient(web_url=url)
+        response = scrape_client.web_page_search()
         number_of_offers = self.number_of_offers(response)
         
         if number_of_offers > 0:
-            total_pages = math.ceil(number_of_offers / 10)
+            print(number_of_offers)
+
+
+            # Loop through each page job listing (10 job per page)
+            # for i in range(0, number_of_offers, 10):
+
+            pass
+
         else:
             raise NoOffersFoundError(
                 title=self.title,

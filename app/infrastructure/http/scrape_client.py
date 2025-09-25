@@ -11,7 +11,7 @@ class ScrapeClient(BaseModel):
     )    
     
     # Setup parameters
-    job_search_url: Annotated[str, Field(min_length=1, description="Job search URL")]
+    web_url: Annotated[str, Field(min_length=1, description="Job search URL")]
     timeout: float = 15.0
     max_retries: int = 3
     backoff_factor: float = 0.5 # 0.5, 1.0, 2.0
@@ -22,12 +22,12 @@ class ScrapeClient(BaseModel):
     # Internal state
     _session: requests.Session = PrivateAttr(default_factory=requests.Session)
 
-    def fetch_job_search(
+    def web_page_search(
             self,
-            job_search_url: Optional[str] = None
+            web_url: Optional[str] = None
     ) -> requests.Response:
         
-        url = (job_search_url or self.job_search_url)
+        url = (web_url or self.web_url)
         last_exc: Exception | None = None
 
         for attempt in range(1, self.max_retries +1):
@@ -50,5 +50,5 @@ class ScrapeClient(BaseModel):
 
         if last_exc:
             raise last_exc
-        raise RuntimeError("fetch_job_search failed without sepcific exception")
+        raise RuntimeError("web_page_search failed without sepcific exception")
         

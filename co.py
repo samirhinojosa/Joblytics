@@ -8,17 +8,17 @@ linkedin_scrapper = LinkedinScrapper(
     location="Paris",
     time_posted=TimePosted.WEEK
 )
-url = linkedin_scrapper.generate_url()
+# url = linkedin_scrapper.generate_url()
+
+# print(url)
+# http = ScrapeClient(web_page_search=url)
+# response = http.fetch_job_search()
+# print(response.text)
+# print(linkedin_scrapper.number_of_offers(response))c
 
 
-http = ScrapeClient(job_search_url=url)
-response = http.fetch_job_search()
-print(response.text)
-print(linkedin_scrapper.number_of_offers(response))
-
-# linkedin_scrapper._number_of_offers = 30
-
-# print(linkedin_scrapper._number_of_offers)
 
 
-print(linkedin_scrapper.fetching_offers(response))
+
+
+print(linkedin_scrapper.fetching_offers())
