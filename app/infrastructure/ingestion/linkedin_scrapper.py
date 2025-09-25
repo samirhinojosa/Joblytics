@@ -92,6 +92,7 @@ class LinkedinScrapper(BaseModel):
             self,
     ) -> list[dict]:
         
+        # Fetching the offers number
         url = self.generate_url()
         scrape_client = ScrapeClient(web_url=url)
         response = scrape_client.web_page_search()
