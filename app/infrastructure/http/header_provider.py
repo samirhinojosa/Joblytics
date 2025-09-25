@@ -21,7 +21,7 @@ class RandomHeaderProvider(BaseModel):
         Load the UAs file, filter out empty lines and comments. Save the list to _uas
         """
         
-        ## Fetching UA file path from settings 
+        ## Fetching UA file path from settings (dependencies)
         settings = get_settings()
         UA_FILE_PATH = settings.UA_FILE_PATH
         

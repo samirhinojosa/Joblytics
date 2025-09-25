@@ -46,7 +46,7 @@ class LinkedinScrapper(BaseModel):
         Generate the Linkedin job search URL using the model values (and allowing for occasional overrides)
         """
 
-        base_url = "https://www.linkedin.com/jobs/search"
+        BASE_URL = "https://www.linkedin.com/jobs/search"
 
         params = {
             "keywords" : (title or self.title),
@@ -62,4 +62,4 @@ class LinkedinScrapper(BaseModel):
         if rm:
             params["f_WT"] = rm
 
-        return f"{base_url}?{urlencode(params, quote_via=quote_plus)}"
+        return f"{BASE_URL}?{urlencode(params, quote_via=quote_plus)}"
