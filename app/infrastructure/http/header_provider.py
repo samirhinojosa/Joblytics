@@ -2,6 +2,7 @@ import random
 from pathlib import Path
 from pydantic import BaseModel, ConfigDict, PrivateAttr, model_validator
 from app.core.settings import get_settings
+# from core.settings import get_settings
 
 
 class RandomHeaderProvider(BaseModel):
@@ -12,7 +13,7 @@ class RandomHeaderProvider(BaseModel):
 
     ua_file: str | Path | None = None
 
-    # Estado interno (no forma parte del esquema/validación)
+    # Internal state (not part of the scheme/validation)
     _uas: list[str] = PrivateAttr(default_factory=list)    
     
     @model_validator(mode="after")

@@ -1,8 +1,12 @@
+import re
+import requests
+import math
 from enum import Enum
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, PrivateAttr
 from typing import Annotated, Optional
 from urllib.parse import urlencode, quote_plus
 from bs4 import BeautifulSoup
+from app.domain.exceptions import NoOffersFoundError
 
 class TimePosted(str, Enum):
     ALL = ""
@@ -63,3 +67,38 @@ class LinkedinScrapper(BaseModel):
             params["f_WT"] = rm
 
         return f"{BASE_URL}?{urlencode(params, quote_via=quote_plus)}"
+    
+    def number_of_offers(
+            self,
+            response: requests.Response
+    ) -> int:
+        
+        # Getting the number of offers
+        soup = BeautifulSoup(response.text, "html.parser")
+        node = soup.select_one("span.results-context-header__job-count")
+        count = int(re.sub(r"\D+", "", node.get_text(strip=True))) if node else 0
+
+        return count
+    
+    def fetching_offers(
+            self,
+            response: requests.Response
+    ) -> list[dict]:
+        
+        number_of_offers = self.number_of_offers(response)
+        
+        if number_of_offers > 0:
+            total_pages = math.ceil(number_of_offers / 10)
+        else:
+            raise NoOffersFoundError(
+                title=self.title,
+                location=self.location,
+                distance=self.distance,
+                time_posted=self.time_posted.value,
+                remote_mode=self.remote_mode.value,
+                url=self.generate_url()
+            )
+
+        
+        return []
+        
