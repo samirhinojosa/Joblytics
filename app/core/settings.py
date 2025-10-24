@@ -34,8 +34,12 @@ class Settings(BaseSettings):
     ## User agents file
     UA_FILE_PATH: Path = APP_DIR / "infrastructure" / "http" / "data" / "user_agents.txt"
 
+    # Loggin information
+    LOG_LEVEL: str = "DEBUG"     # Logger level (“DEBUG,” “INFO,” “WARNING,” “ERROR”)
+    LOG_FILE: str = "app.log"    # File where logs are stored
+
     class Config:
-        env_file = ".env"    
+        env_file = ".env"
 
 @lru_cache
 def get_settings():

@@ -1,6 +1,7 @@
 import re
 import requests
 import math
+import logging
 from enum import Enum
 from pydantic import BaseModel, ConfigDict, Field, field_validator, PrivateAttr
 from typing import Annotated, Optional
@@ -8,6 +9,9 @@ from urllib.parse import urlencode, quote_plus
 from bs4 import BeautifulSoup
 from app.infrastructure.http.scrape_client import ScrapeClient
 from app.domain.exceptions import NoOffersFoundError
+
+app_logger = logging.getLogger("app")
+user_logger = logging.getLogger("user")
 
 class TimePosted(str, Enum):
     ALL = ""
@@ -99,7 +103,40 @@ class LinkedinScrapper(BaseModel):
         number_of_offers = self.number_of_offers(response)
         
         if number_of_offers > 0:
-            print(number_of_offers)
+            
+            app_logger.info(f"Fetching data from LinkedIn API... Number of offers: {number_of_offers}")
+
+            jobs = []
+
+            for i in range(0, number_of_offers, 25):
+                app_logger.info(f"Number of offers: {i}")
+                _url = self.generate_url(offset=i)
+                response = scrape_client.web_page_search(web_url=_url)
+
+                # Parse the HTML content of the response using BeautifulSoup
+                soup = BeautifulSoup(response.text, "html.parser")
+
+                # Find all list items (li) within the joblist, representing individual job postings
+                soup_jobs = soup.find_all("li")
+
+                for job in soup_jobs:
+                    # posting_id = job.find("div", class_="base-card").get("data-entity-urn").split(":")[3] if job.find("div", class_="base-card") else None
+                    title = job.select_one("h3.base-search-card__title").get_text(strip=True)
+                    # title = job.find('h3', class_="base-search-card__title").text.strip()
+                    print(title)
+                    # print()
+                    # node_posting = job.sevvlect_one("div.base-card")
+
+
+
+
+
+                    # node = soup.select_one("span.results-context-header__job-count")
+                    # count = int(re.sub(r"\D+", "", node.get_text(strip=True))) if node else 0
+
+
+
+
 
 
             # Loop through each page job listing (10 job per page)
