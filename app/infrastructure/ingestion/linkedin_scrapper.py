@@ -11,7 +11,7 @@ from app.infrastructure.http.scrape_client import ScrapeClient
 from app.domain.exceptions import NoOffersFoundError
 
 
-log = logging.getLogger("linkedin scrapper")
+log = logging.getLogger(__name__)
 
 class TimePosted(str, Enum):
     ALL = ""
@@ -108,7 +108,7 @@ class LinkedinScrapper(BaseModel):
 
             jobs = []
 
-            for i in range(0, number_of_offers, 25):
+            for i in range(225, number_of_offers, 25):
                 log.info(f"Processing jobs offers from {i} to {i + 25} of {number_of_offers} offers total")
                 _url = self.generate_url(offset=i)
                 response = scrape_client.web_page_search(web_url=_url)

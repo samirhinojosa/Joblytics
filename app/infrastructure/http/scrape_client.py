@@ -14,7 +14,7 @@ class ScrapeClient(BaseModel):
     web_url: Annotated[str, Field(min_length=1, description="Job search URL")]
     timeout: float = 15.0
     max_retries: int = 3
-    backoff_factor: float = 0.5 # 0.5, 1.0, 2.0
+    backoff_factor: float = 2.0 # 0.5, 1.0, 2.0
 
     # Dependencies
     header_provider: RandomHeaderProvider = Field(default_factory=RandomHeaderProvider)
@@ -38,7 +38,7 @@ class ScrapeClient(BaseModel):
                 if response.status_code == 200:
                     return response
                 
-                if response.status_code in (429, 500, 502, 503, 504):
+                if response.status_code in (429, 500, 502, 503, 504, 999):
                     time.sleep(self.backoff_factor * (2 ** (attempt - 1)))
                     continue
 
