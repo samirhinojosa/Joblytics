@@ -1,8 +1,8 @@
 import re
 import requests
 import math
-import logging
 from enum import Enum
+import logging
 from pydantic import BaseModel, ConfigDict, Field, field_validator, PrivateAttr
 from typing import Annotated, Optional
 from urllib.parse import urlencode, quote_plus
@@ -10,8 +10,8 @@ from bs4 import BeautifulSoup
 from app.infrastructure.http.scrape_client import ScrapeClient
 from app.domain.exceptions import NoOffersFoundError
 
-app_logger = logging.getLogger("app")
-user_logger = logging.getLogger("user")
+
+log = logging.getLogger("linkedin scrapper")
 
 class TimePosted(str, Enum):
     ALL = ""
@@ -99,17 +99,17 @@ class LinkedinScrapper(BaseModel):
         # Fetching the offers number
         url = self.generate_url()
         scrape_client = ScrapeClient(web_url=url)
+        log.info(f"Fetching data from LinkedIn API...")
         response = scrape_client.web_page_search()
         number_of_offers = self.number_of_offers(response)
+        log.info(f"Number of jobs offers: {number_of_offers}")
         
         if number_of_offers > 0:
-            
-            app_logger.info(f"Fetching data from LinkedIn API... Number of offers: {number_of_offers}")
 
             jobs = []
 
             for i in range(0, number_of_offers, 25):
-                app_logger.info(f"Number of offers: {i}")
+                log.info(f"Processing jobs offers from {i} to {i + 25} of {number_of_offers} offers total")
                 _url = self.generate_url(offset=i)
                 response = scrape_client.web_page_search(web_url=_url)
 
@@ -127,17 +127,8 @@ class LinkedinScrapper(BaseModel):
                     # print()
                     # node_posting = job.sevvlect_one("div.base-card")
 
-
-
-
-
                     # node = soup.select_one("span.results-context-header__job-count")
                     # count = int(re.sub(r"\D+", "", node.get_text(strip=True))) if node else 0
-
-
-
-
-
 
             # Loop through each page job listing (10 job per page)
             # for i in range(0, number_of_offers, 10):

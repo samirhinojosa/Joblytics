@@ -1,11 +1,16 @@
+import logging
 from app.infrastructure.http.header_provider import RandomHeaderProvider
 from app.infrastructure.ingestion.linkedin_scrapper import LinkedinScrapper, TimePosted
 from app.infrastructure.http.scrape_client import ScrapeClient
 from app.core.logging_config import setup_logging
+from app.core.settings import get_settings
 
 
 def main():
     setup_logging()
+    settings = get_settings()
+
+    # log = logging.getLogger("app")
 
     linkedin_scrapper = LinkedinScrapper(
         title="Data Engineer",
@@ -13,7 +18,11 @@ def main():
         time_posted=TimePosted.WEEK
     )
 
+    print(linkedin_scrapper.fetching_offers())
 
+
+if __name__ == "__main__":
+    main()
     
     # url = linkedin_scrapper.generate_url()
 
@@ -28,8 +37,3 @@ def main():
 
 
 
-    print(linkedin_scrapper.fetching_offers())
-
-
-if __name__ == "__main__":
-    main()

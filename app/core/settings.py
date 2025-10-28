@@ -1,11 +1,11 @@
-import os
+# import os
 from pathlib import Path
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from functools import lru_cache
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # load .env
-load_dotenv(override=True)
+# load_dotenv(override=True)
 
 class Settings(BaseSettings):
 
@@ -23,6 +23,7 @@ class Settings(BaseSettings):
         "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
     }
     APP_DIR: Path = Path(__file__).resolve().parent.parent
+    PROJECT_ROOT: Path = APP_DIR.parent
 
     # General API information
     # OPENAPI_URL: str = "/openapi.json"
@@ -35,12 +36,25 @@ class Settings(BaseSettings):
     UA_FILE_PATH: Path = APP_DIR / "infrastructure" / "http" / "data" / "user_agents.txt"
 
     # Loggin information
-    LOG_LEVEL: str = "DEBUG"     # Logger level (“DEBUG,” “INFO,” “WARNING,” “ERROR”)
-    LOG_FILE: str = "app.log"    # File where logs are stored
+    LOG_LEVEL: str = "DEBUG"                # Logger level (“DEBUG,” “INFO,” “WARNING,” “ERROR”)
+    LOG_FILE: str = "logs/joblytics.log"    # File where logs are stored (dev mode)
 
-    class Config:
-        env_file = ".env"
+    # class Config:
+    #     env_file = ".env"
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+    )
+
+    def resolve_log_file(self) -> Path:
+        p = Path(self.LOG_FILE)
+        if p.is_absolute():
+            return p
+        # Interpret relative to the project root
+        return (self.PROJECT_ROOT / p).resolve()
 
 @lru_cache
-def get_settings():
+def get_settings() -> Settings:
     return Settings()      

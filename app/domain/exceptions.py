@@ -1,7 +1,7 @@
 
 # Dominio: excepciones específicas
 class DomainError(Exception):
-    """Base para errores de dominio (no técnicos)."""
+    """Basis for domain errors (non-technical)."""
 
 
 class NoOffersFoundError(DomainError):
