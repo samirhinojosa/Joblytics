@@ -11,7 +11,7 @@ from app.infrastructure.http.scrape_client import ScrapeClient
 from app.domain.exceptions import NoOffersFoundError
 
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 class TimePosted(str, Enum):
     ALL = ""
@@ -99,17 +99,22 @@ class LinkedinScrapper(BaseModel):
         # Fetching the offers number
         url = self.generate_url()
         scrape_client = ScrapeClient(web_url=url)
-        log.info(f"Fetching data from LinkedIn API...")
+
+        logger.info(f"Fetching data from LinkedIn API...")
+
         response = scrape_client.web_page_search()
+
         number_of_offers = self.number_of_offers(response)
-        log.info(f"Number of jobs offers: {number_of_offers}")
+
+        logger.info(f"Number of jobs offers: {number_of_offers}")
         
         if number_of_offers > 0:
 
             jobs = []
 
-            for i in range(225, number_of_offers, 25):
-                log.info(f"Processing jobs offers from {i} to {i + 25} of {number_of_offers} offers total")
+            for i in range(0, number_of_offers, 25):
+                
+                logger.info(f"Processing jobs offers from {i} to {i + 25} of {number_of_offers} offers total")
                 _url = self.generate_url(offset=i)
                 response = scrape_client.web_page_search(web_url=_url)
 
@@ -123,17 +128,17 @@ class LinkedinScrapper(BaseModel):
                     # posting_id = job.find("div", class_="base-card").get("data-entity-urn").split(":")[3] if job.find("div", class_="base-card") else None
                     title = job.select_one("h3.base-search-card__title").get_text(strip=True)
                     # title = job.find('h3', class_="base-search-card__title").text.strip()
-                    print(title)
+                    ################################################print(title)
                     # print()
                     # node_posting = job.sevvlect_one("div.base-card")
 
                     # node = soup.select_one("span.results-context-header__job-count")
                     # count = int(re.sub(r"\D+", "", node.get_text(strip=True))) if node else 0
 
-            # Loop through each page job listing (10 job per page)
-            # for i in range(0, number_of_offers, 10):
+            # # Loop through each page job listing (10 job per page)
+            # # for i in range(0, number_of_offers, 10):
 
-            pass
+            # pass
 
         else:
             raise NoOffersFoundError(

@@ -1,15 +1,15 @@
-# import logging
+import logging
+# import json
 from logging.config import dictConfig
 from pathlib import Path
 from colorlog import ColoredFormatter
 from app.core.settings import get_settings
 
-
 def setup_logging() -> None:
 
     settings = get_settings()
 
-    LOG_LEVEL = settings.LOG_LEVEL.upper()
+    LOG_LEVEL = settings.LOG_LEVEL
     LOG_FILE : Path = settings.resolve_log_file()
 
     try:
@@ -20,7 +20,7 @@ def setup_logging() -> None:
         fallback = settings.PROJECT_ROOT / settings.LOG_FILE
         fallback.parent.mkdir(parents=True, exist_ok=True)
         LOG_FILE = fallback
- 
+
     LOGGING_CONFIG = {
         "version": 1,
         "disable_existing_loggers": False,
@@ -29,7 +29,8 @@ def setup_logging() -> None:
             # Colors on console
             "colored": {
                 "()": "colorlog.ColoredFormatter",
-                "format": "%(log_color)s[%(asctime)s] [%(levelname)s] (%(name)s): %(message)s",
+                "format": "%(log_color)s[%(asctime)s] [%(levelname)s] (%(module)s): %(message)s",
+                "datefmt": "%Y-%m-%d %H:%M:%S",
                 "log_colors": {
                     "DEBUG": "cyan",
                     "INFO": "green",
@@ -39,7 +40,8 @@ def setup_logging() -> None:
                 },
             },
             "standard": {
-                "format": "[%(asctime)s] [%(levelname)s] %(name)s: %(message)s"
+                "format": "[%(asctime)s] [%(levelname)s] %(module)s: %(message)s",
+                "datefmt": "%Y-%m-%d %H:%M:%S",
             },
         },
 
@@ -48,7 +50,7 @@ def setup_logging() -> None:
             "console": {
                 "class": "logging.StreamHandler",
                 "formatter": "colored",
-                "level": LOG_LEVEL
+                "level": LOG_LEVEL.name
             },
             # File for technical logs
             "file": {
@@ -63,7 +65,7 @@ def setup_logging() -> None:
             # Main logger
             "app": {
                 "handlers": ["console", "file"],
-                "level": LOG_LEVEL,
+                "level": LOG_LEVEL.name,
                 "propagate": False
             },
         }

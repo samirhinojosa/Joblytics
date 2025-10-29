@@ -1,11 +1,21 @@
 # import os
+from enum import Enum
 from pathlib import Path
+from typing import Optional
 # from dotenv import load_dotenv
 from functools import lru_cache
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # load .env
 # load_dotenv(override=True)
+
+class LogLevel(str, Enum):
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+    CRITICAL = "CRITICAL"
 
 class Settings(BaseSettings):
 
@@ -36,24 +46,34 @@ class Settings(BaseSettings):
     UA_FILE_PATH: Path = APP_DIR / "infrastructure" / "http" / "data" / "user_agents.txt"
 
     # Loggin information
-    LOG_LEVEL: str = "DEBUG"                # Logger level (“DEBUG,” “INFO,” “WARNING,” “ERROR”)
-    LOG_FILE: str = "logs/joblytics.log"    # File where logs are stored (dev mode)
+    LOG_LEVEL: LogLevel = LogLevel.DEBUG
+    LOG_FILE: Optional[Path] = None
 
-    # class Config:
-    #     env_file = ".env"
-
+    # Variables present in .env: LOG_FILE
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
     )
 
+    # Defining Logging file path
+    @model_validator(mode="after")
+    def override_log_file_for_debug(self):
+        """
+        - If DEBUG -> use local log: logs/joblytics.log
+        - If not DEBUT and LOG_FILE is None -> log path: /var/log/joblytics/app.log
+        """
+        if self.LOG_LEVEL == LogLevel.DEBUG:
+            self.LOG_FILE = Path("logs/joblytics.log")
+        elif self.LOG_FILE is None:
+            self.LOG_FILE = Path("/var/log/joblytics/app.log")
+        return self    
+
     def resolve_log_file(self) -> Path:
-        p = Path(self.LOG_FILE)
-        if p.is_absolute():
-            return p
-        # Interpret relative to the project root
-        return (self.PROJECT_ROOT / p).resolve()
+        lf = self.LOG_FILE
+        assert lf is not None, "LOG_FILE should be resolved in the validator 'override_log_file_for_debug'"
+        p = lf if isinstance(lf, Path) else Path(lf)
+        return p if p.is_absolute() else (self.PROJECT_ROOT / p).resolve()
 
 @lru_cache
 def get_settings() -> Settings:
