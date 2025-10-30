@@ -3,11 +3,11 @@ import requests
 import math
 from enum import Enum
 import logging
-from pydantic import BaseModel, ConfigDict, Field, field_validator, PrivateAttr
+from pydantic import BaseModel, ConfigDict, Field, field_validator, PrivateAttr, HttpUrl
 from typing import Annotated, Optional
 from urllib.parse import urlencode, quote_plus
 from bs4 import BeautifulSoup
-from app.infrastructure.http.scrape_client import ScrapeClient
+from app.infrastructure.http.scraper.scrape_client import ScrapeClient
 from app.domain.exceptions import NoOffersFoundError
 
 
@@ -51,7 +51,7 @@ class LinkedinScrapper(BaseModel):
             offset: Optional[int] = None,
             time_posted: Optional[TimePosted] = None, 
             remote_mode: Optional[RemoteMode] = None
-    ) -> str: 
+    ) -> HttpUrl: 
         """
         Generate the Linkedin job search URL using the model values (and allowing for occasional overrides)
         """
@@ -77,7 +77,7 @@ class LinkedinScrapper(BaseModel):
         else:
             BASE_URL = "https://www.linkedin.com/jobs/search"
 
-        return f"{BASE_URL}?{urlencode(params, quote_via=quote_plus)}"
+        return HttpUrl(f"{BASE_URL}?{urlencode(params, quote_via=quote_plus)}")
     
 
     def number_of_offers(
@@ -99,14 +99,10 @@ class LinkedinScrapper(BaseModel):
         # Fetching the offers number
         url = self.generate_url()
         scrape_client = ScrapeClient(web_url=url)
-
         logger.info(f"Fetching data from LinkedIn API...")
-
         response = scrape_client.web_page_search()
-
         number_of_offers = self.number_of_offers(response)
 
-        logger.info(f"Number of jobs offers: {number_of_offers}")
         
         if number_of_offers > 0:
 
@@ -114,7 +110,8 @@ class LinkedinScrapper(BaseModel):
 
             for i in range(0, number_of_offers, 25):
                 
-                logger.info(f"Processing jobs offers from {i} to {i + 25} of {number_of_offers} offers total")
+                logger.info(f"Processing jobs offers batch {i}-{i + 25} (total {number_of_offers})")
+                            
                 _url = self.generate_url(offset=i)
                 response = scrape_client.web_page_search(web_url=_url)
 
@@ -128,7 +125,9 @@ class LinkedinScrapper(BaseModel):
                     # posting_id = job.find("div", class_="base-card").get("data-entity-urn").split(":")[3] if job.find("div", class_="base-card") else None
                     title = job.select_one("h3.base-search-card__title").get_text(strip=True)
                     # title = job.find('h3', class_="base-search-card__title").text.strip()
-                    ################################################print(title)
+                    ################################################
+                    print(title)
+                    
                     # print()
                     # node_posting = job.sevvlect_one("div.base-card")
 
@@ -145,8 +144,8 @@ class LinkedinScrapper(BaseModel):
                 title=self.title,
                 location=self.location,
                 distance=self.distance,
-                time_posted=self.time_posted.value,
-                remote_mode=self.remote_mode.value,
+                time_posted=self.time_posted.name.lower(),
+                remote_mode=self.remote_mode.name.lower(),
                 url=self.generate_url()
             )
 

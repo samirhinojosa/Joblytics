@@ -1,19 +1,18 @@
+from pydantic import HttpUrl
 
-# Dominio: excepciones específicas
 class DomainError(Exception):
     """Basis for domain errors (non-technical)."""
-
 
 class NoOffersFoundError(DomainError):
 
     def __init__(
-        self, *,
+        self, 
         title: str,
         location: str,
         distance: int,
         time_posted: str,
         remote_mode: str,
-        url: str | None = None
+        url: HttpUrl | None = None
     ):
         
         self.title = title
@@ -23,11 +22,9 @@ class NoOffersFoundError(DomainError):
         self.remote_mode = remote_mode
         self.url = url
 
-        msg = (
-            f"No offers were found (0 resultados) for"
+        super().__init__(
+            f"No offers were found (0 results) for "
             f'title="{title}", location="{location}", distance={distance}, '
             f"time posted={time_posted}, remote mode={remote_mode}"
             + (f". URL: {url}" if url else "")
         )
-        
-        super().__init__(msg)

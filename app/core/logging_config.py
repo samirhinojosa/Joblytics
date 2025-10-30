@@ -54,10 +54,14 @@ def setup_logging() -> None:
             },
             # File for technical logs
             "file": {
-                "class": "logging.FileHandler",
+                "class": "logging.handlers.RotatingFileHandler",
                 "filename": str(LOG_FILE),
                 "formatter": "standard",
-                "level": "WARNING"
+                "level": "DEBUG",
+                "maxBytes": 10 * 1024 * 1024,  # 10 MB
+                "backupCount": 7,
+                "encoding": "utf-8",
+                "delay": True,  
             },
         },
 
