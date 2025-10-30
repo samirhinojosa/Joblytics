@@ -15,10 +15,17 @@ def main():
     linkedin_scrapper = LinkedinScrapper(
         title="Data engineer",
         location="France",
-        time_posted=TimePosted.WEEK
+        time_posted=TimePosted.MONTH
     )
 
     print(linkedin_scrapper.fetching_offers())
+
+    # import time
+
+    # counter = 20
+    # print(counter % 10)
+    # if (counter % 5) == 0:
+    #     time.sleep(0.5)
 
 
 if __name__ == "__main__":
