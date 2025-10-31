@@ -139,10 +139,10 @@ class LinkedInScrapper(BaseModel):
             self,
     ) -> list[dict]:
         """
-        Goes through the pagination of the LinkedIn offers list and return a offers basic list 
+        Goes through the pagination of the LinkedIn jobs listings and return an offers basic list 
         """
         try:
-            logger.info(f"[Summary] Starting LinkedIn job listings fetch: [title='{self.title}', location='{self.location}', "
+            logger.info(f"[Summary] Starting LinkedIn jobs listings fetch: [title='{self.title}', location='{self.location}', "
                         f"time_posted='{self.time_posted.name.lower()}']...")
             
             url = self.generate_jobs_url()
@@ -236,7 +236,7 @@ class LinkedInScrapper(BaseModel):
             return []
         
         COUNT_TOTAL = len(jobs)
-        logger.info(f"[Details] Starting LinkedIn job details fetch: {COUNT_TOTAL} listings to process.")
+        logger.info(f"[Details] Starting LinkedIn jobs details fetch: {COUNT_TOTAL} listings to process.")
         
         BASE_URL = "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/"
         scrape_client = ScrapeClient(web_url=HttpUrl(f"{BASE_URL}{int(jobs[0]["id"])}"))
@@ -244,7 +244,7 @@ class LinkedInScrapper(BaseModel):
         for job in jobs:
 
             if random.random() < 0.4: # print with 40% probability
-                logger.info(f"[Details] Fetching job details {count}/{COUNT_TOTAL} (id={job['id']})")
+                logger.info(f"[Details] Fetching jobs details {count}/{COUNT_TOTAL} (id={job['id']})")
 
             job_id_url = HttpUrl(f"{BASE_URL}{int(job["id"])}")
             self._polite_delay(base=0.45, jitter=0.4)
@@ -277,6 +277,6 @@ class LinkedInScrapper(BaseModel):
             finally:
                 count += 1
 
-        logger.info(f"[Details] Completed LinkedIn job details fetch: "
+        logger.info(f"[Details] Completed LinkedIn jobs details fetch: "
                     f"{COUNT_TOTAL} listings processed [title='{self.title}', location='{self.location}'].")
         return jobs
