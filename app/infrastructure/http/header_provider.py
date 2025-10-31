@@ -1,9 +1,11 @@
 import random
 from pathlib import Path
-from pydantic import BaseModel, ConfigDict, PrivateAttr, model_validator
+from pydantic import BaseModel, ConfigDict, PrivateAttr, model_validator, HttpUrl
 from app.core.settings import get_settings
 # from core.settings import get_settings
 
+import logging
+logger = logging.getLogger(__name__)
 
 class RandomHeaderProvider(BaseModel):
 
@@ -45,14 +47,36 @@ class RandomHeaderProvider(BaseModel):
         self._uas = uas
         return self
     
+    
     def user_agents(self) -> list[str]:
         """
         Return the UAs list loaded.
         """
         return list(self._uas)
     
-    def header(self) -> dict[str, str]:
+
+    def header(self, url: HttpUrl) -> dict[str, str]:
         """
         Return a random User-Agent picked
         """
-        return {"User-Agent": random.choice(self._uas)}
+        header = {
+            "User-Agent": random.choice(self._uas),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Accept-Language": random.choice(["en-US,en;q=0.9", "fr-FR,fr;q=0.9,en;q=0.8", "es-ES,es;q=0.9,en;q=0.8"]),
+            "Accept-Encoding": "gzip, deflate, br",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1",
+            "DNT": "1",  # Do Not Track header (simula un navegador real)
+        }
+
+        referer = None
+        if "linkedin" in str(url):
+            if "/jobs-guest/jobs/api/seeMoreJobPostings/" in str(url):
+                Referer = "https://www.linkedin.com/jobs/view/"
+            elif "/jobs-guest/jobs/api/jobPosting/" in str(url):
+                Referer = "https://www.linkedin.com/jobs/search"
+
+            if referer is not None:
+                header["Referer"] = referer
+
+        return header        

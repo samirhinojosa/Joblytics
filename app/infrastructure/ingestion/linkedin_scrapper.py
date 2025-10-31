@@ -28,7 +28,7 @@ class RemoteMode(str, Enum):
     HYBRID = "2"
     REMOTE = "3"
 
-class LinkedinScrapper(BaseModel):
+class LinkedInScrapper(BaseModel):
 
     model_config = ConfigDict(
         extra="forbid"
@@ -39,6 +39,9 @@ class LinkedinScrapper(BaseModel):
     distance: Annotated[int, Field(ge=0, le=100, description="Search radius")] = 10
     time_posted: TimePosted = TimePosted.ALL
     remote_mode: RemoteMode = RemoteMode.ALL
+
+    # Config global
+    PAGE_SIZE: int = 10
 
     # Normalizes input strings
     @field_validator("title", "location")
@@ -57,7 +60,7 @@ class LinkedinScrapper(BaseModel):
             remote_mode: Optional[RemoteMode] = None
     ) -> HttpUrl: 
         """
-        Generate the Linkedin job search URL using the model values (and allowing for occasional overrides)
+        Generate the LinkedIn job search URL using the model values (and allowing for occasional overrides)
         """
         params = {
             "keywords" : (title or self.title),
@@ -75,11 +78,12 @@ class LinkedinScrapper(BaseModel):
 
         if offset is not None:
             BASE_URL = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
-            params["geoId"] = geo_id
+            if geo_id is not None: 
+                params["geoId"] = geo_id
             params["position"] = 1
             params["pageNum"] = 0
             params["start"] = offset
-            # params["count"] = 25
+            params["count"] = self.PAGE_SIZE
         else:
             BASE_URL = "https://www.linkedin.com/jobs/search"
 
@@ -98,15 +102,6 @@ class LinkedinScrapper(BaseModel):
         count = int(re.sub(r"\D+", "", node.get_text(strip=True))) if node else 0
 
         return count
-    
-
-    def generate_job_detail_url(self, job_id: int)-> HttpUrl: 
-        """
-        Generate a valid LinkedIn job detail URL for a given job ID.
-        """        
-        url = f"https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/{job_id}"
-        
-        return HttpUrl(url)
     
 
     def _extract_geo_id(self, response: requests.Response) -> int | None:
@@ -140,126 +135,148 @@ class LinkedinScrapper(BaseModel):
         time.sleep(base + random.random() * jitter)    
 
     
-    def fetching_offers(
+    def fetch_offers_summary(
             self,
     ) -> list[dict]:
         """
-        Fetching the offers number
+        Goes through the pagination of the LinkedIn offers list and return a offers basic list 
         """
+        try:
+            logger.info(f"[Summary] Starting LinkedIn job listings fetch: [title='{self.title}', location='{self.location}', "
+                        f"time_posted='{self.time_posted.name.lower()}']...")
+            
+            url = self.generate_jobs_url()
+            scrape_client = ScrapeClient(web_url=url)
+            response = scrape_client.web_page_search()
+            number_of_offers = self.number_of_offers(response)
+            geo_id = self._extract_geo_id(response)
 
-        url = self.generate_jobs_url()
-        scrape_client = ScrapeClient(web_url=url)
-        logger.info(f"Fetching data from LinkedIn API...")
-        response = scrape_client.web_page_search()
-        number_of_offers = self.number_of_offers(response)
-        geo_id = self._extract_geo_id(response)
+            MAX_START = min(975, number_of_offers - 1)  # Avoiding to request empty webpages
 
-        PAGE_SIZE = 10
-        MAX_START = min(975, number_of_offers - 1)  # Avoiding to request empty webpages
-        
-        if number_of_offers > 0:
+            if number_of_offers <= 0:
+                logger.warning(
+                    f"Zero results reported by counter — possible empty page or authwall. "
+                    f"status={response.status_code}, url={response.url}, len(html)={len(response.text)}"
+                )
+                raise NoOffersFoundError(
+                    title=self.title,
+                    location=self.location,
+                    distance=self.distance,
+                    time_posted=self.time_posted.name.lower(),
+                    remote_mode=self.remote_mode.name.lower(),
+                    url=self.generate_jobs_url()
+                )                
 
             if number_of_offers > 1000:
-                logger.warning(f"Processing capped at 1,000 offers to avoid LinkedIn rate limits (total {number_of_offers})")
+                logger.warning(f"[Summary] Processing capped at 1,000 offers to avoid LinkedIn rate limits (total {number_of_offers})")
 
-            jobs = []
+            jobs_summary = []
+            for i in range(0, MAX_START + 1, self.PAGE_SIZE):
 
-            for i in range(0, MAX_START + 1, PAGE_SIZE):
-                
-                logger.info(f"Processing jobs offers batch {i}-{i + PAGE_SIZE} (total {number_of_offers})")
-                            
+                if random.random() < 0.6: # print with 60% probability
+                    logger.info(f"[Summary] Fetching batch {i}-{i + self.PAGE_SIZE} of {number_of_offers} job listings...")
+
                 _url = self.generate_jobs_url(offset=i, geo_id=geo_id)
+                self._polite_delay(base=0.45, jitter=0.4)
                 response = scrape_client.web_page_search(web_url=_url)
-
-                # Parse the HTML content of the response using BeautifulSoup
                 soup = BeautifulSoup(response.text, "html.parser")
-
-                # Find all list items (li) within the joblist, representing individual job postings
                 soup_jobs = soup.find_all("li")
 
                 for job in soup_jobs:   
-
-                    level = None
-                    description = None
-                    
                     if not isinstance(job, Tag):
                         continue
 
-                    job_id_card = job.select_one("div.base-card")
-                    job_id = job_id_card["data-entity-urn"].split(":")[3] if job_id_card.has_attr("data-entity-urn") else None # type: ignore
-                  
-                    title_card = job.select_one("h3.base-search-card__title")
-                    title = title_card.get_text(strip=True) if title_card else None        
+                    cards = job.select("div.base-card[data-entity-urn]")
+                    for card in cards:
+                        job_id_card = card.get("data-entity-urn")
+                        job_id = job_id_card.split(":")[-1] if job_id_card else None
+                        if not job_id:
+                            continue
+                
+                        title_card = job.select_one("h3.base-search-card__title")
+                        title = title_card.get_text(strip=True) if title_card else None        
 
-                    company_card = job.select_one("h4.base-search-card__subtitle")
-                    company = company_card.get_text(strip=True) if company_card else None
+                        company_card = job.select_one("h4.base-search-card__subtitle")
+                        company = company_card.get_text(strip=True) if company_card else None
 
-                    location_card = job.select_one("span.job-search-card__location")
-                    location = location_card.get_text(strip=True) if location_card else None
+                        location_card = job.select_one("span.job-search-card__location")
+                        location = location_card.get_text(strip=True) if location_card else None
 
-                    url_card = job.select_one("a.base-card__full-link")
-                    url = url_card.get("href") if url_card else None
+                        url_card = job.select_one("a.base-card__full-link")
+                        url = url_card.get("href") if url_card else None
 
-                    logger.debug(f"Fetching job details [id={job_id}] - '{title}' - '{company}'")
+                        job_details = {
+                            "id" : job_id,
+                            "title" : title,
+                            "company" : company,
+                            "location" : location,
+                            "url": url        
+                        }
 
-                    if job_id:
-                        job_id_url = self.generate_job_detail_url(int(job_id))
+                        jobs_summary.append(job_details)
 
-                        self._polite_delay(base=0.45, jitter=0.4)
-
-                        try:
-                            job_id_response = scrape_client.web_page_search(web_url=job_id_url)
-
-                            if job_id_response.ok:
-                                job_id_soup = BeautifulSoup(job_id_response.text, "html.parser")
-                                level_card = job_id_soup.select_one("ul.description__job-criteria-list li")
-                                level = (
-                                    level_card.get_text(strip=True).replace("Seniority level", "").strip() 
-                                    if level_card else None 
-                                )
-                                descripcion_card = job_id_soup.select_one(
-                                    "div.description__text--rich div.show-more-less-html__markup"
-                                )
-                                description = (
-                                    descripcion_card.get_text(separator="\n", strip=True) 
-                                    if descripcion_card else None
-                                )
-                            else:
-                                logger.warning(f"Skipping job {job_id} detail: status={job_id_response.status_code}")
-                        except ScrapeClientError as e:
-                            logger.warning(f"Skipping job {job_id} detail due to ScrapeClientError: {e}")
-                    
-
-                    job_details = {
-                        "id" : job_id,
-                        "title" : title,
-                        "level" : level,
-                        "description" : description,
-                        "company" : company,
-                        "location" : location,
-                        "url": url        
-                    }
-
-                    jobs.append(job_details)
-
-            print(len(jobs))
-
-        else:
-            raise NoOffersFoundError(
-                title=self.title,
-                location=self.location,
-                distance=self.distance,
-                time_posted=self.time_posted.name.lower(),
-                remote_mode=self.remote_mode.name.lower(),
-                url=self.generate_jobs_url()
-            )
-
+            logger.info(f"[Summary] Completed LinkedIn job summary fetch: {len(jobs_summary)}/{number_of_offers} "
+                        f"listings retrieved [title='{self.title}', location='{self.location}', "
+                        f"time_posted='{self.time_posted.name.lower()}'].")
+            return jobs_summary
         
+        except NoOffersFoundError:
+            raise        
+        except Exception as e:
+            logger.error(f"Unexpected error while fetching LinkedIn offers summary: {type(e).__name__} - {e}")
+            return []
+        
+
+    def fetch_offers_details(
+            self,
+            jobs: list[dict]
+    ) -> list[dict]:
+        
+        if not jobs:
+            return []
+        
+        COUNT_TOTAL = len(jobs)
+        logger.info(f"[Details] Starting LinkedIn job details fetch: {COUNT_TOTAL} listings to process.")
+        
+        BASE_URL = "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/"
+        scrape_client = ScrapeClient(web_url=HttpUrl(f"{BASE_URL}{int(jobs[0]["id"])}"))
+        count = 1
         for job in jobs:
-            print(f"title: {job["title"]}, id: {job["id"]}, company: {job["company"]}")
 
-        # import pandas as pd
-        # file_name = "jobs.csv"
+            if random.random() < 0.4: # print with 40% probability
+                logger.info(f"[Details] Fetching job details {count}/{COUNT_TOTAL} (id={job['id']})")
 
-        return []
-        
+            job_id_url = HttpUrl(f"{BASE_URL}{int(job["id"])}")
+            self._polite_delay(base=0.45, jitter=0.4)
+
+            try:
+                job_id_response = scrape_client.web_page_search(web_url=job_id_url)
+
+                if job_id_response.ok:
+                    job_id_soup = BeautifulSoup(job_id_response.text, "html.parser")
+                    level_card = job_id_soup.select_one("ul.description__job-criteria-list li")
+                    level = (
+                        level_card.get_text(strip=True).replace("Seniority level", "").strip() 
+                        if level_card else None 
+                    )
+                    descripcion_card = job_id_soup.select_one(
+                        "div.description__text--rich div.show-more-less-html__markup"
+                    )
+                    description = (
+                        descripcion_card.get_text(separator="\n", strip=True) 
+                        if descripcion_card else None
+                    )
+
+                    job["level"] = level
+                    job["description"] = description
+
+                else:
+                    logger.warning(f"Skipping job {job['id']} details: status={job_id_response.status_code}")
+            except ScrapeClientError as e:
+                logger.warning(f"Skipping job {job['id']} details due to ScrapeClientError: {e}")
+            finally:
+                count += 1
+
+        logger.info(f"[Details] Completed LinkedIn job details fetch: "
+                    f"{COUNT_TOTAL} listings processed [title='{self.title}', location='{self.location}'].")
+        return jobs

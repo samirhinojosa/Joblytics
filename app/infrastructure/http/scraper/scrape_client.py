@@ -31,6 +31,7 @@ class ScrapeClient(BaseModel):
     # Internal state
     _session: requests.Session = PrivateAttr(default_factory=requests.Session)
 
+
     def _get_backoff_sleep(self, attempt: int) -> float:
         '''
         Compute exponential backoff with jitter and cap
@@ -39,19 +40,20 @@ class ScrapeClient(BaseModel):
         sleep = min(base, self.backoff_cap) + random.uniform(0, 0.5)
         return sleep
 
+
     def web_page_search(
             self,
             web_url: Optional[HttpUrl] = None
     ) -> requests.Response:
         
         url = (web_url or self.web_url)
-        last_exc: Exception | None = None
         response: Optional[requests.Response] = None
 
         for attempt in range(1, self.max_retries + 1):
             try:
-                header = self.header_provider.header()
-                
+                # header = self.header_provider.header()
+                header = self.header_provider.header(url)
+
                 t0  = time.monotonic()
                 response = self._session.get(str(url), headers=header, timeout=self.timeout)
                 elapsed = time.monotonic() - t0

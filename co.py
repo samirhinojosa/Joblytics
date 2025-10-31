@@ -1,7 +1,7 @@
-import logging
-from app.infrastructure.http.header_provider import RandomHeaderProvider
-from app.infrastructure.ingestion.linkedin_scrapper import LinkedinScrapper, TimePosted
-from app.infrastructure.http.scraper.scrape_client import ScrapeClient
+# import logging
+# from app.infrastructure.http.header_provider import RandomHeaderProvider
+from app.infrastructure.ingestion.linkedin_scrapper import LinkedInScrapper, TimePosted
+# from app.infrastructure.http.scraper.scrape_client import ScrapeClient
 from app.core.logging_config import setup_logging
 from app.core.settings import get_settings
 
@@ -10,24 +10,34 @@ def main():
     setup_logging()
     settings = get_settings()
 
-    linkedin_scrapper = LinkedinScrapper(
-        title="Data engineer",
-        location="France",
-        time_posted=TimePosted.MONTH
+    linkedin_scrapper = LinkedInScrapper(
+        title="Python",
+        location="Grenoble",
+        time_posted=TimePosted.WEEK
     )
 
-    print(linkedin_scrapper.fetching_offers())
+    jobs_summary = linkedin_scrapper.fetch_offers_summary()
+    jobs_details = linkedin_scrapper.fetch_offers_details(jobs_summary)
+
+    import pandas as pd
+    pd.set_option("display.max_colwidth", 30)  # máximo 100 caracteres por celda
+    pd.set_option("display.width", 100)         # ancho máximo total de la tabla
+    pd.set_option("display.max_columns", None)  # mostrar todas las columnas
+    pd.set_option("display.expand_frame_repr", False)  # no dividir en varias líneas
+
+    def truncate_df(df: pd.DataFrame, max_len: int = 40) -> pd.DataFrame:
+        def _truncate_value(x):
+            s = str(x)
+            return s if len(s) <= max_len else s[:max_len - 1] + "…"
+        return df.applymap(_truncate_value)
+    
+    df = pd.DataFrame(jobs_details)
+    df_trunc = truncate_df(df, max_len=30)
+    print(df_trunc.drop(columns=["url", "description"]).to_markdown(index=False))    
 
 if __name__ == "__main__":
     main()
-    
-    # url = linkedin_scrapper.generate_url()
 
-    # print(url)
-    # http = ScrapeClient(web_page_search=url)
-    # response = http.fetch_job_search()
-    # print(response.text)
-    # print(linkedin_scrapper.number_of_offers(response))c
 
 
 

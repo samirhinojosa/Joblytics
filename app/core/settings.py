@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     UA_FILE_PATH: Path = APP_DIR / "infrastructure" / "http" / "data" / "user_agents.txt"
 
     # Loggin information
-    LOG_LEVEL: LogLevel = LogLevel.DEBUG
+    LOG_LEVEL: LogLevel = LogLevel.INFO
     LOG_FILE: Optional[Path] = None
 
     # Variables present in .env: LOG_FILE
