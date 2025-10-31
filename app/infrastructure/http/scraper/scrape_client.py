@@ -62,7 +62,15 @@ class ScrapeClient(BaseModel):
                     return response
                 
                 if response.status_code in RETRY_STATUSES:
-                    sleep = self._get_backoff_sleep(attempt)
+                    retry_after = response.headers.get("Retry-After")
+                    if retry_after:
+                        try:
+                            sleep = float(retry_after)
+                        except ValueError:
+                            sleep = self._get_backoff_sleep(attempt)
+                    else:
+                        sleep = self._get_backoff_sleep(attempt)
+                        
                     logger.warning(f"Retryable status {response.status_code} on {url} " + \
                                    f"(attempt {attempt}/{self.max_retries}) Sleeping {sleep:.2f}s")
                     time.sleep(sleep)
@@ -73,19 +81,18 @@ class ScrapeClient(BaseModel):
                 return response
             
             except requests.RequestException as e:
-                last_exc = e
+                status = response.status_code if response is not None else None
                 sleep = self._get_backoff_sleep(attempt)
+
                 if attempt < self.max_retries:
                     logger.warning(f"RequestException on {url} (attempt {attempt}/{self.max_retries}) " + \
                                    f"{e.__class__.__name__,} (status code={response.status_code}). Sleeping {sleep:.2f}s")
                     time.sleep(sleep)
-                else:
-                    logger.error(f"RequestException on {url} (attempt {attempt}/{self.max_retries}) " + \
-                                 f"{e.__class__.__name__,} (status code={response.status_code}). No more retries.")
-                    raise ScrapeClientError(url, self.max_retries, attempt, response.status_code)
-                
+                    continue
 
-            status = response.status_code if 'response' in locals() and response is not None else None
-            if last_exc:
-                raise ScrapeClientError(url, self.max_retries, attempt, status)
-            raise ScrapeClientError(url, self.max_retries, attempt, status)
+                logger.error(f"RequestException on {url} (attempt {attempt}/{self.max_retries}) " + \
+                                f"{e.__class__.__name__,} (status code={response.status_code}). No more retries.")
+                raise ScrapeClientError(url, self.max_retries, attempt, response.status_code)
+
+        status = response.status_code if response is not None else None
+        raise ScrapeClientError(url, self.max_retries, attempt, status)

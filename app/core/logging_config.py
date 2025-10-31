@@ -57,7 +57,7 @@ def setup_logging() -> None:
                 "class": "logging.handlers.RotatingFileHandler",
                 "filename": str(LOG_FILE),
                 "formatter": "standard",
-                "level": "DEBUG",
+                "level": "INFO",
                 "maxBytes": 10 * 1024 * 1024,  # 10 MB
                 "backupCount": 7,
                 "encoding": "utf-8",
