@@ -9,6 +9,9 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, PrivateAttr,
 from typing import Annotated, Optional
 from urllib.parse import urlencode, quote_plus
 from bs4 import BeautifulSoup, Tag
+from itertools import zip_longest, chain
+from concurrent.futures import ThreadPoolExecutor
+import threading
 from app.infrastructure.http.scraper.scrape_client import ScrapeClient
 from app.domain.exceptions import NoOffersFoundError
 from app.infrastructure.http.scraper.scrape_client_error import ScrapeClientError
@@ -163,7 +166,7 @@ class LinkedInScrapper(BaseModel):
                     location=self.location,
                     distance=self.distance,
                     time_posted=self.time_posted.name.lower(),
-                    remote_mode=self.remote_mode.name.lower(),
+                    remote_mode=self.remote_mode.name.lower(), 
                     url=self.generate_jobs_url()
                 )                
 
@@ -230,52 +233,71 @@ class LinkedInScrapper(BaseModel):
     def fetch_offers_details(
             self,
             jobs: list[dict]
-    ) -> list[dict]:
+    ) -> list[dict] | None:
         
         if not jobs:
-            return []
+            return None
         
         COUNT_TOTAL = len(jobs)
         logger.info(f"[Details] Starting LinkedIn jobs details fetch: {COUNT_TOTAL} listings to process.")
-        
+
+        MAX_WORKERS = 5
         BASE_URL = "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/"
-        scrape_client = ScrapeClient(web_url=HttpUrl(f"{BASE_URL}{int(jobs[0]["id"])}"))
-        count = 1
-        for job in jobs:
+        
+        # Split the list into chunks of 5 dictionaries each using zip_longest
+        # (fills missing values with None and filters them out)
+        jobs_lists = [list(filter(None, job)) for job in zip_longest(*[iter(jobs)]*MAX_WORKERS)]
 
-            if random.random() < 0.4: # print with 40% probability
-                logger.info(f"[Details] Fetching jobs details {count}/{COUNT_TOTAL} (id={job['id']})")
+        # shared counter 
+        done = 0         
+        lock = threading.Lock()
+        def _fetch_offers_details(_jobs: list) -> None:
+            
+            scrape_client = ScrapeClient(web_url=HttpUrl(f"{BASE_URL}{int(_jobs[0]["id"])}"))
+            nonlocal done
 
-            job_id_url = HttpUrl(f"{BASE_URL}{int(job["id"])}")
-            self._polite_delay(base=0.45, jitter=0.4)
+            for job in _jobs:
+                try:
 
-            try:
-                job_id_response = scrape_client.web_page_search(web_url=job_id_url)
+                    with lock:
+                        done += 1
 
-                if job_id_response.ok:
-                    job_id_soup = BeautifulSoup(job_id_response.text, "html.parser")
-                    level_card = job_id_soup.select_one("ul.description__job-criteria-list li")
-                    level = (
-                        level_card.get_text(strip=True).replace("Seniority level", "").strip() 
-                        if level_card else None 
-                    )
-                    descripcion_card = job_id_soup.select_one(
-                        "div.description__text--rich div.show-more-less-html__markup"
-                    )
-                    description = (
-                        descripcion_card.get_text(separator="\n", strip=True) 
-                        if descripcion_card else None
-                    )
+                    if random.random() < 0.4: # print with 40% probability
+                        logger.info(f"[Details] Fetching jobs details {done}/{COUNT_TOTAL} (id={job['id']})")
+                    
+                    job_id_url = HttpUrl(f"{BASE_URL}{int(job['id'])}")
+                    self._polite_delay(base=2.0, jitter=1.5)
 
-                    job["level"] = level
-                    job["description"] = description
+                    job_id_response = scrape_client.web_page_search(web_url=job_id_url)
 
-                else:
-                    logger.warning(f"Skipping job {job['id']} details: status={job_id_response.status_code}")
-            except ScrapeClientError as e:
-                logger.warning(f"Skipping job {job['id']} details due to ScrapeClientError: {e}")
-            finally:
-                count += 1
+                    if job_id_response.ok:
+                        job_id_soup = BeautifulSoup(job_id_response.text, "html.parser")
+                        level_card = job_id_soup.select_one("ul.description__job-criteria-list li")
+                        level = (
+                            level_card.get_text(strip=True).replace("Seniority level", "").strip() 
+                            if level_card else None 
+                        )
+                        descripcion_card = job_id_soup.select_one(
+                            "div.description__text--rich div.show-more-less-html__markup"
+                        )
+                        description = (
+                            descripcion_card.get_text(separator="\n", strip=True) 
+                            if descripcion_card else None
+                        )
+
+                        job["level"] = level
+                        job["description"] = description
+
+                    else:
+                        logger.warning(f"Skipping job {job['id']} details: status={job_id_response.status_code}")
+                except ScrapeClientError as e:
+                    logger.warning(f"Skipping job {job['id']} details due to ScrapeClientError: {e}")
+
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            list(executor.map(_fetch_offers_details, jobs_lists))
+
+        # Flatten the list of lists back into a single list using itertools.chain
+        jobs = list(chain.from_iterable(jobs_lists))
 
         logger.info(f"[Details] Completed LinkedIn jobs details fetch: "
                     f"{COUNT_TOTAL} listings processed [title='{self.title}', location='{self.location}'].")
