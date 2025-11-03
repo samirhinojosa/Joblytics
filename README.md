@@ -1,6 +1,3 @@
-# DBT-learning
+# Joblytics
 
-poetry run jupyter lab
-
-# sudo apt update && sudo apt install -y wslu
-poetry run jupyter lab --browser=wslview
+Joblytics is a Python-based tool to scrape and analyse job listings from platforms such as LinkedIn, Welcome to the Jungle, among others.  

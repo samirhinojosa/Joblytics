@@ -1,9 +1,6 @@
-# import logging
-# from app.infrastructure.http.header_provider import RandomHeaderProvider
-from app.infrastructure.ingestion.linkedin_scrapper import LinkedInScrapper, TimePosted
-# from app.infrastructure.http.scraper.scrape_client import ScrapeClient
 from app.core.logging_config import setup_logging
 from app.core.settings import get_settings
+from app.infrastructure.ingestion.linkedin_scrapper import LinkedInScrapper, TimePosted
 
 
 def main():
@@ -37,10 +34,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
