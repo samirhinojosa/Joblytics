@@ -19,6 +19,8 @@ from app.infrastructure.http.scraper.scrape_client_error import ScrapeClientErro
 
 logger = logging.getLogger(__name__)
 
+print("hello"
+
 class TimePosted(str, Enum):
     ALL = ""
     DAY = "r86400"
@@ -59,9 +61,9 @@ class LinkedInScrapper(BaseModel):
             distance: Optional[int] = None,
             geo_id: Optional[int] = None,
             offset: Optional[int] = None,
-            time_posted: Optional[TimePosted] = None, 
+            time_posted: Optional[TimePosted] = None,
             remote_mode: Optional[RemoteMode] = None
-    ) -> HttpUrl: 
+    ) -> HttpUrl:
         """
         Generate the LinkedIn job search URL using the model values (and allowing for occasional overrides)
         """
@@ -81,7 +83,7 @@ class LinkedInScrapper(BaseModel):
 
         if offset is not None:
             BASE_URL = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
-            if geo_id is not None: 
+            if geo_id is not None:
                 params["geoId"] = geo_id
             params["position"] = 1
             params["pageNum"] = 0
@@ -91,7 +93,7 @@ class LinkedInScrapper(BaseModel):
             BASE_URL = "https://www.linkedin.com/jobs/search"
 
         return HttpUrl(f"{BASE_URL}?{urlencode(params, quote_via=quote_plus)}")
-    
+
 
     def number_of_offers(
             self,
@@ -99,13 +101,13 @@ class LinkedInScrapper(BaseModel):
     ) -> int:
         """
         Getting the number of offers
-        """        
+        """
         soup = BeautifulSoup(response.text, "html.parser")
         node = soup.select_one("span.results-context-header__job-count")
         count = int(re.sub(r"\D+", "", node.get_text(strip=True))) if node else 0
 
         return count
-    
+
 
     def _extract_geo_id(self, response: requests.Response) -> int | None:
         """
@@ -119,7 +121,7 @@ class LinkedInScrapper(BaseModel):
             if not node:
                 logger.debug("geoId not found in HTML")
                 return None
-            
+
             geo_id = node.get("value", "").strip()
             if geo_id.isdigit():
                 return int(geo_id)
@@ -129,25 +131,25 @@ class LinkedInScrapper(BaseModel):
         except Exception as e:
             logger.warning(f"Failed to extract geoId: {e}")
             return None
-    
+
 
     def _polite_delay(self, base: float = 0.6, jitter: float = 0.5):
         """
         Short pause with jitter to avoid sending a lot of requests to the detail endpoint.
         """
-        time.sleep(base + random.random() * jitter)    
+        time.sleep(base + random.random() * jitter)
 
-    
+
     def fetch_offers_summary(
             self,
     ) -> list[dict]:
         """
-        Goes through the pagination of the LinkedIn jobs listings and return an offers basic list 
+        Goes through the pagination of the LinkedIn jobs listings and return an offers basic list
         """
         try:
             logger.info(f"[Summary] Starting LinkedIn jobs listings fetch: [title='{self.title}', location='{self.location}', "
                         f"time_posted='{self.time_posted.name.lower()}']...")
-            
+
             url = self.generate_jobs_url()
             scrape_client = ScrapeClient(web_url=url)
             response = scrape_client.web_page_search()
@@ -166,9 +168,9 @@ class LinkedInScrapper(BaseModel):
                     location=self.location,
                     distance=self.distance,
                     time_posted=self.time_posted.name.lower(),
-                    remote_mode=self.remote_mode.name.lower(), 
+                    remote_mode=self.remote_mode.name.lower(),
                     url=self.generate_jobs_url()
-                )                
+                )
 
             if number_of_offers > 1000:
                 logger.warning(f"[Summary] Processing capped at 1,000 offers to avoid LinkedIn rate limits (total {number_of_offers})")
@@ -185,7 +187,7 @@ class LinkedInScrapper(BaseModel):
                 soup = BeautifulSoup(response.text, "html.parser")
                 soup_jobs = soup.find_all("li")
 
-                for job in soup_jobs:   
+                for job in soup_jobs:
                     if not isinstance(job, Tag):
                         continue
 
@@ -195,9 +197,9 @@ class LinkedInScrapper(BaseModel):
                         job_id = job_id_card.split(":")[-1] if job_id_card else None
                         if not job_id:
                             continue
-                
+
                         title_card = job.select_one("h3.base-search-card__title")
-                        title = title_card.get_text(strip=True) if title_card else None        
+                        title = title_card.get_text(strip=True) if title_card else None
 
                         company_card = job.select_one("h4.base-search-card__subtitle")
                         company = company_card.get_text(strip=True) if company_card else None
@@ -213,7 +215,7 @@ class LinkedInScrapper(BaseModel):
                             "title" : title,
                             "company" : company,
                             "location" : location,
-                            "url": url        
+                            "url": url
                         }
 
                         jobs_summary.append(job_details)
@@ -222,37 +224,37 @@ class LinkedInScrapper(BaseModel):
                         f"listings retrieved [title='{self.title}', location='{self.location}', "
                         f"time_posted='{self.time_posted.name.lower()}'].")
             return jobs_summary
-        
+
         except NoOffersFoundError:
-            raise        
+            raise
         except Exception as e:
             logger.error(f"Unexpected error while fetching LinkedIn offers summary: {type(e).__name__} - {e}")
             return []
-        
+
 
     def fetch_offers_details(
             self,
             jobs: list[dict]
     ) -> list[dict] | None:
-        
+
         if not jobs:
             return None
-        
+
         COUNT_TOTAL = len(jobs)
         logger.info(f"[Details] Starting LinkedIn jobs details fetch: {COUNT_TOTAL} listings to process.")
 
         MAX_WORKERS = 5
         BASE_URL = "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/"
-        
+
         # Split the list into chunks of 5 dictionaries each using zip_longest
         # (fills missing values with None and filters them out)
         jobs_lists = [list(filter(None, job)) for job in zip_longest(*[iter(jobs)]*MAX_WORKERS)]
 
-        # shared counter 
-        done = 0         
+        # shared counter
+        done = 0
         lock = threading.Lock()
         def _fetch_offers_details(_jobs: list) -> None:
-            
+
             scrape_client = ScrapeClient(web_url=HttpUrl(f"{BASE_URL}{int(_jobs[0]["id"])}"))
             nonlocal done
 
@@ -264,7 +266,7 @@ class LinkedInScrapper(BaseModel):
 
                     if random.random() < 0.4: # print with 40% probability
                         logger.info(f"[Details] Fetching jobs details {done}/{COUNT_TOTAL} (id={job['id']})")
-                    
+
                     job_id_url = HttpUrl(f"{BASE_URL}{int(job['id'])}")
                     self._polite_delay(base=2.0, jitter=1.5)
 
@@ -274,14 +276,14 @@ class LinkedInScrapper(BaseModel):
                         job_id_soup = BeautifulSoup(job_id_response.text, "html.parser")
                         level_card = job_id_soup.select_one("ul.description__job-criteria-list li")
                         level = (
-                            level_card.get_text(strip=True).replace("Seniority level", "").strip() 
-                            if level_card else None 
+                            level_card.get_text(strip=True).replace("Seniority level", "").strip()
+                            if level_card else None
                         )
                         descripcion_card = job_id_soup.select_one(
                             "div.description__text--rich div.show-more-less-html__markup"
                         )
                         description = (
-                            descripcion_card.get_text(separator="\n", strip=True) 
+                            descripcion_card.get_text(separator="\n", strip=True)
                             if descripcion_card else None
                         )
 

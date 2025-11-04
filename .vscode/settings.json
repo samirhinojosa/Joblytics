@@ -1,0 +1,28 @@
+{
+  // --- Python Environment ---
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+
+  // --- Linting / Formatting ---
+  "python.linting.enabled": false,     // disable old linters
+  "pylint.enabled": false,
+  "ruff.lint.enable": true,            // use Ruff instead
+  "ruff.format.enable": true,
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true
+  },
+
+  // --- Type Checking (MyPy) ---
+  "mypy-type-checker.args": ["--config-file", "pyproject.toml"],
+  "mypy-type-checker.importStrategy": "useBundled",
+  "mypy-type-checker.preferDaemon": true,
+  "mypy-type-checker.severity": "error",
+
+  // --- Editor Preferences ---
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "makefile.configureOnOpen": false
+}
