@@ -32,7 +32,7 @@ freezegun = "^1.5.5"
 faker = "^37.12.0"
 ruff = "^0.14.3"
 mypy = "^1.18.2"
-
+types-requests = "^2.32.4.20250913"
 
 [tool.poetry.group.notebooks.dependencies]
 jupyterlab = "^4.4.10"
@@ -40,3 +40,25 @@ ipykernel = "^7.1.0"
 pandas = "^2.3.3"
 tabulate = "^0.9.0"
 
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = false
+disallow_untyped_defs = true
+check_untyped_defs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+no_implicit_optional = true
+show_error_codes = true
+pretty = true
+explicit_package_bases = true
+
+# Relax rules for tests (allow untyped functions)
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
+# Ignore missing types for external libs like dbt_*, pandas.*
+# [[tool.mypy.overrides]]
+# module = ["dbt_*", "pandas.*"]
+# ignore_missing_imports = true

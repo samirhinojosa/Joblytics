@@ -1,20 +1,20 @@
 from pydantic import HttpUrl
 
+
 class DomainError(Exception):
     """Basis for domain errors (non-technical)."""
 
-class NoOffersFoundError(DomainError):
 
+class NoOffersFoundError(DomainError):
     def __init__(
-        self, 
+        self,
         title: str,
         location: str,
         distance: int,
         time_posted: str,
         remote_mode: str,
-        url: HttpUrl | None = None
+        url: HttpUrl | None = None,
     ):
-        
         self.title = title
         self.location = location
         self.distance = distance

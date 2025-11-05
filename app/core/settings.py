@@ -1,14 +1,10 @@
-# import os
 from enum import Enum
 from pathlib import Path
-from typing import Optional
-# from dotenv import load_dotenv
+from typing import Self
 from functools import lru_cache
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# load .env
-# load_dotenv(override=True)
 
 class LogLevel(str, Enum):
     DEBUG = "DEBUG"
@@ -17,7 +13,14 @@ class LogLevel(str, Enum):
     ERROR = "ERROR"
     CRITICAL = "CRITICAL"
 
+
 class Settings(BaseSettings):
+    # Read .env and parse values
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+    )
 
     # General information
     APP_NAME: str = "Joblytics"
@@ -43,38 +46,30 @@ class Settings(BaseSettings):
     # FAST_API_VERSION: str = "0.0.1"
 
     ## User agents file
-    UA_FILE_PATH: Path = APP_DIR / "infrastructure" / "http" / "data" / "user_agents.txt"
+    UA_FILE_PATH: Path = (
+        APP_DIR / "infrastructure" / "http" / "data" / "user_agents.txt"
+    )
 
     # Loggin information
     LOG_LEVEL: LogLevel = LogLevel.INFO
-    LOG_FILE: Optional[Path] = None
-
-    # Variables present in .env: LOG_FILE
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=False,
-    )
+    LOG_FILE: Path = Path("/var/log/joblytics/app.log")
 
     # Defining Logging file path
     @model_validator(mode="after")
-    def override_log_file_for_debug(self):
+    def override_log_file_for_debug(self) -> Self:
         """
         - If DEBUG -> use local log: logs/joblytics.log
-        - If not DEBUT and LOG_FILE is None -> log path: /var/log/joblytics/app.log
+        - If not DEBUT -> default /var/log/joblytics/app.log
         """
         if self.LOG_LEVEL == LogLevel.DEBUG:
             self.LOG_FILE = Path("logs/joblytics.log")
-        elif self.LOG_FILE is None:
-            self.LOG_FILE = Path("/var/log/joblytics/app.log")
-        return self    
+        return self
 
     def resolve_log_file(self) -> Path:
-        lf = self.LOG_FILE
-        assert lf is not None, "LOG_FILE should be resolved in the validator 'override_log_file_for_debug'"
-        p = lf if isinstance(lf, Path) else Path(lf)
+        p = self.LOG_FILE
         return p if p.is_absolute() else (self.PROJECT_ROOT / p).resolve()
+
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()      
+    return Settings()
