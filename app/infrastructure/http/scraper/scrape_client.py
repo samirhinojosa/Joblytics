@@ -60,40 +60,43 @@ class ScrapeClient(BaseModel):
                     return response
 
                 if response.status_code in RETRY_STATUSES:
-                    retry_after = response.headers.get("Retry-After")
-                    if retry_after:
-                        try:
-                            sleep = float(retry_after)
-                        except ValueError:
+                    if attempt < self.max_retries:
+                        retry_after = response.headers.get("Retry-After")
+                        if retry_after:
+                            try:
+                                sleep = float(retry_after)
+                            except ValueError:
+                                sleep = self._get_backoff_sleep(attempt)
+                        else:
                             sleep = self._get_backoff_sleep(attempt)
-                    else:
-                        sleep = self._get_backoff_sleep(attempt)
 
-                    logger.warning(
-                        f"Retryable status {response.status_code} on {url} "
-                        + f"(attempt {attempt}/{self.max_retries}) Sleeping {sleep:.2f}s"
-                    )
-                    time.sleep(sleep)
-                    continue
+                        logger.warning(
+                            f"Retryable status {response.status_code} on {url} "
+                            + f"(attempt {attempt}/{self.max_retries}) Sleeping {sleep:.2f}s"
+                        )
+                        time.sleep(sleep)
+                        continue
 
-                # No retryable → launch HTTP error
+                    # Last attempt — no sleep; fall through to error handling below
+                    response.raise_for_status()
+                    return response
+
+                # Non-retryable → raise the underlying HTTP error
                 response.raise_for_status()
                 return response
-
             except requests.RequestException as e:
                 status: Optional[int] = (
                     response.status_code if response is not None else None
                 )
-                sleep = self._get_backoff_sleep(attempt)
 
                 if attempt < self.max_retries:
+                    sleep = self._get_backoff_sleep(attempt)
                     logger.warning(
                         f"RequestException on {url} (attempt {attempt}/{self.max_retries}) "
                         + f"{(e.__class__.__name__,)} (status code={status}). Sleeping {sleep:.2f}s"
                     )
                     time.sleep(sleep)
                     continue
-
                 logger.error(
                     f"RequestException on {url} (attempt {attempt}/{self.max_retries}) "
                     + f"{(e.__class__.__name__,)} (status code={status}). No more retries."
