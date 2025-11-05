@@ -68,4 +68,6 @@ check_untyped_defs = false
 omit = [
     "*/__init__.py",
     "app/core/logging_config.py",
+    "app/domain/exceptions.py",
+    "app/infrastructure/http/scraper/scrape_client_error.py",
 ]

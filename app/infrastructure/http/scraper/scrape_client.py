@@ -43,7 +43,6 @@ class ScrapeClient(BaseModel):
 
         for attempt in range(1, self.max_retries + 1):
             try:
-                # header = self.header_provider.header()
                 header = self.header_provider.header(url)
 
                 t0 = time.monotonic()
