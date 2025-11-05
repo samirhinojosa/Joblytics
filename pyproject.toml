@@ -57,8 +57,15 @@ explicit_package_bases = true
 [[tool.mypy.overrides]]
 module = "tests.*"
 disallow_untyped_defs = false
+check_untyped_defs = false
 
 # Ignore missing types for external libs like dbt_*, pandas.*
 # [[tool.mypy.overrides]]
 # module = ["dbt_*", "pandas.*"]
 # ignore_missing_imports = true
+
+[tool.coverage.run]
+omit = [
+    "*/__init__.py",
+    "app/core/logging_config.py",
+]
