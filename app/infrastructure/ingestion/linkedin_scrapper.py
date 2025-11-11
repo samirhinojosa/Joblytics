@@ -12,7 +12,7 @@ from itertools import zip_longest, chain
 from concurrent.futures import ThreadPoolExecutor
 import threading
 from app.infrastructure.http.scraper.scrape_client import ScrapeClient
-from app.domain.exceptions import NoOffersFoundError
+from app.domain.exceptions.exceptions import NoOffersFoundError
 from app.infrastructure.http.scraper.scrape_client_error import ScrapeClientError
 
 

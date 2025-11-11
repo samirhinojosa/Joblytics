@@ -6,6 +6,8 @@ SRC:=app tests
 PKG:=app
 COV_FAIL_UNDER:=85
 
+NOTEBOOKS_DIR := notebooks
+
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
@@ -23,7 +25,7 @@ else
 	NC   := \033[0m
 endif
 
-.PHONY: clean clean-all cov cov-strict format fmt help install install-prod jupyter-lab lint quality test type
+.PHONY: clean clean-all cov cov-strict format fmt help install install-prod lint marimo quality test type
 
 define LOG_FILE
 	@LOG_FILE="$$( $(POETRY) run python -c 'from app.core.settings import get_settings; \
@@ -52,7 +54,8 @@ define CLEAN
 		 -name '.mypy_cache' -o \
 		 -name '.pytest_cache' -o \
 		 -name '.ruff_cache' -o \
-		 -name '.ipynb_checkpoints' \
+		 -name '.ipynb_checkpoints' -o \
+		 -name '__marimo__' \
 	\) -prune -exec rm -rf {} +
 	@find . -type f \( -name '*.pyc' -o -name '*.pyo' -o -name '*.py[co]' \) -exec rm -f {} +
 	@echo "✅ All caches removed."
@@ -69,6 +72,7 @@ define COV-STRICT
 endef
 
 install: ## Install everything (main + dev dependencies)
+	@$(POETRY) lock
 	@$(POETRY) install --with dev
 	@$(LOG_FILE)
 
@@ -76,8 +80,20 @@ install-prod: ## Install only production dependencies (no dev)
 	@$(POETRY) install --only main --no-root
 	@$(LOG_FILE)
 
-jupyter-lab: ## Run Jupyter Lab (only if you installed the notebooks group)
-	@$(POETRY) run jupyter lab
+marimo: ## Run marimo on a given notebook: NB=my_experiment (will open notebooks/my_experiment.py)
+	@if [ -z "$(NB)" ]; then \
+		echo "❌ ERROR: You must provide NB=<notebook_name>"; \
+		echo "   Example: make marimo NB=my_experiment"; \
+		exit 1; \
+	fi; \
+	FILE="$(NOTEBOOKS_DIR)/$(NB).py"; \
+	echo "📄 Notebook file: $$FILE"; \
+	if [ ! -f "$$FILE" ]; then \
+		echo "📄 File $$FILE does not exist, creating it..."; \
+		$(POETRY) run marimo create "$$FILE"; \
+	fi; \
+	echo "🚀 Opening marimo with $$FILE"; \
+	$(POETRY) run marimo edit "$$FILE" --headless
 
 fmt: ## Format code (Ruff formatter) and apply safe lint autofixes
 	@$(POETRY) run ruff format $(SRC)
