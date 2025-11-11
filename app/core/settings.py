@@ -61,7 +61,7 @@ class Settings(BaseSettings):
         - If DEBUG -> use local log: logs/joblytics.log
         - If not DEBUT -> default /var/log/joblytics/app.log
         """
-        if self.LOG_LEVEL == LogLevel.INFO:
+        if self.LOG_LEVEL == LogLevel.DEBUG:
             self.LOG_FILE = Path("logs/joblytics.log")
         return self
 

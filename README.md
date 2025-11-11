@@ -54,7 +54,6 @@ make install-prod
 ```
 
 ### 📝 Log file permissions (important)
-
 If the application writes to:
 
 ```bash

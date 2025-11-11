@@ -118,7 +118,7 @@ format: ## Format, lint, and type-check only (no tests)
 	@$(FORMAT)
 
 quality:  ## Format, lint, type-check, and run tests with coverage (pre-commit/pre-push)
-	@$(LINT)
+	@$(FORMAT)
 	@$(COV-STRICT)
 
 clean: ## Remove Python and tool caches (mypy, pytest, ruff, notebooks)
