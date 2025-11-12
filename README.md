@@ -17,6 +17,7 @@ Joblytics aims to provide a modern, scalable and modular framework to:
 ## Requirements
 - Python 3.12 (recommended)
 - Poetry
+- Docker Compose
 
 ## 📂 Project Structure (overview)
     .
@@ -53,6 +54,35 @@ Recommended for deployment or production-like environments:
 make install-prod
 ```
 
+### 🐘 PostgreSQL Setup
+Joblytics uses PostgreSQL 16.4 as its local development database.</br>
+The database is orchestrated through Docker Compose, ensuring consistent environments and easy teardown/rebuild.
+
+#### ⚙️ Environment variables (.env)
+```bash
+# Log path
+LOG_FILE=/var/log/joblytics/app.log
+
+# Set timezone for the container
+TZ=UTC
+
+# Database credentials
+POSTGRES_USER=joblytics
+POSTGRES_PASSWORD=joblytics_pwd
+POSTGRES_DB=joblytics_db
+```
+🧠 Tip: keep your `.env` file out of version control if you ever store real credentials.
+
+#### 🚀 Common database commands
+| Action                               | Command                           |
+| ------------------------------------ | --------------------------------- |
+| Start the database                   | `docker compose up -d postgres`   |
+| Check status                         | `docker compose ps`               |
+| Stop database                        | `docker compose stop postgres`    |
+| Restart database                     | `docker compose restart postgres` |
+| Remove container but keep data       | `docker compose down`             |
+| Remove everything (including volume) | `docker compose down -v`          |
+
 ### 📝 Log file permissions (important)
 If the application writes to:
 
@@ -69,7 +99,7 @@ sudo chown $USER:$USER /var/log/joblytics/app.log
 sudo chmod 664 /var/log/joblytics/app.log
 ```
 
-### 🧪 Tests and Quality Checks
+### 🧪 Tests and Quality Checks (Development mode)
 The Makefile provides a standardized development workflow:
 
 | Command           | Description                                                      |
