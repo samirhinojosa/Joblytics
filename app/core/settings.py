@@ -24,8 +24,8 @@ class Settings(BaseSettings):
 
     # General information
     APP_NAME: str = "Joblytics"
-    # DESCRIPTION: str = """Twitter (now X) Monitor AI is an intelligent service that monitors and analyzes tweets in real time.<br/>
-    # It is designed with Clean Architecture principles and built using FastAPI and Docker, ensuring maintainability, scalability, and modularity."""
+    DESCRIPTION: str = """Joblytics is a Python-based tool to scrape and analyse job listings from platforms such as LinkedIn, Welcome to the Jungle, among others.<br/>
+    It is designed with Clean Architecture principles and built using technologies such as: DBT, Docker, FastAPI, ensuring maintainability, scalability, and modularity."""
     CONTACT: dict = {
         "name": "Samir Hinojosa",
         "url": "https://github.com/samirhinojosa",
