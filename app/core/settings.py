@@ -24,7 +24,7 @@ class Settings(BaseSettings):
 
     # General information
     APP_NAME: str = "Joblytics"
-    DESCRIPTION: str = """Joblytics is a Python-based tool to scrape and analyse job listings from platforms such as LinkedIn, Welcome to the Jungle, among others.<br/>
+    DESCRIPTION: str = """Joblytics is a Python-based tool to scrape and analyze job listings from platforms such as LinkedIn, Welcome to the Jungle, among others.<br/>
     It is designed with Clean Architecture principles and built using technologies such as: DBT, Docker, FastAPI, ensuring maintainability, scalability, and modularity."""
     CONTACT: dict = {
         "name": "Samir Hinojosa",
