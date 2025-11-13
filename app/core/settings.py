@@ -1,6 +1,6 @@
 from enum import Enum
 from pathlib import Path
-from typing import Self
+from typing import Self, Any
 from functools import lru_cache
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -24,8 +24,12 @@ class Settings(BaseSettings):
 
     # General information
     APP_NAME: str = "Joblytics"
-    DESCRIPTION: str = """Joblytics is a Python-based tool to scrape and analyze job listings from platforms such as LinkedIn, Welcome to the Jungle, among others.<br/>
-    It is designed with Clean Architecture principles and built using technologies such as: DBT, Docker, FastAPI, ensuring maintainability, scalability, and modularity."""
+    DESCRIPTION: str = (
+        "Joblytics is a Python-based tool to scrape and analyze job listings "
+        "from platforms such as LinkedIn, Welcome to the Jungle, among others.<br/>"
+        "It is designed with Clean Architecture principles and built using technologies "
+        "such as: DBT, Docker, FastAPI, ensuring maintainability, scalability, and modularity."
+    )
     CONTACT: dict = {
         "name": "Samir Hinojosa",
         "url": "https://github.com/samirhinojosa",
@@ -51,7 +55,7 @@ class Settings(BaseSettings):
     )
 
     # Loggin information
-    LOG_LEVEL: LogLevel = LogLevel.DEBUG
+    LOG_LEVEL: LogLevel = LogLevel.INFO
     LOG_FILE: Path = Path("/var/log/joblytics/app.log")
 
     # Defining Logging file path
@@ -70,6 +74,28 @@ class Settings(BaseSettings):
         return p if p.is_absolute() else (self.PROJECT_ROOT / p).resolve()
 
 
+class RuntimeSettings(Settings):
+    # Reads .env (runtime/default)
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+    )
+
+
+class TestSettings(Settings):
+    # Ignores .env (unit tests)
+    model_config = SettingsConfigDict(
+        env_file=None,
+        case_sensitive=False,
+    )
+
+
 @lru_cache
-def get_settings() -> Settings:
-    return Settings()
+def get_settings(*, read_env: bool = True, **overrides: Any) -> Settings:
+    """
+    Runtime: get_settings()               -> reads .env (cached).
+    Tests:   get_settings(read_env=False) -> ignores .env; pass overrides explicitly.
+    """
+    cls = RuntimeSettings if read_env else TestSettings
+    return cls(**overrides)

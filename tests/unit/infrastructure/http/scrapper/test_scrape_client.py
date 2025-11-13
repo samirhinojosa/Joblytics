@@ -8,15 +8,27 @@ from app.infrastructure.http.header_provider import RandomHeaderProvider
 from app.infrastructure.http.scraper.scrape_client import ScrapeClient
 
 
+@pytest.fixture
+def valid_ua_file(tmp_path: Path) -> Path:
+    # A desktop UA line (>= 60 chars, not mobile)
+    line = (
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+    )
+    p = tmp_path / "user_agents.txt"
+    p.write_text("# comment\n" + line + "\n", encoding="utf-8", newline="")
+    return p
+
+
 class DummyHeaderProvider(RandomHeaderProvider):
     def header(self, url: HttpUrl) -> dict[str, str]:
         return {"User-Agent": "pytest-UA"}
 
 
-def test_web_page(monkeypatch) -> None:
+def test_web_page(monkeypatch, valid_ua_file: Path) -> None:
     client = ScrapeClient(
         web_url=HttpUrl("http://example.com/jobs"),
-        header_provider=DummyHeaderProvider(),
+        header_provider=DummyHeaderProvider(ua_file=valid_ua_file),
     )
 
     class FakeResponse:
@@ -54,7 +66,7 @@ def test_web_page(monkeypatch) -> None:
     assert response.status_code == 200
 
 
-def test_get_backoff_sleep_basic(monkeypatch) -> None:
+def test_get_backoff_sleep_basic(monkeypatch, valid_ua_file: Path) -> None:
     # Freeze jitter to a fixed value on the module where it's used
     monkeypatch.setattr(
         "app.infrastructure.http.scraper.scrape_client.random.uniform",
@@ -64,6 +76,7 @@ def test_get_backoff_sleep_basic(monkeypatch) -> None:
 
     scrape_client = ScrapeClient(
         web_url=HttpUrl("https://example.com"),
+        header_provider=DummyHeaderProvider(ua_file=valid_ua_file),
         backoff_factor=1.0,  # so base = 1 * 2^(attempt-1)
         backoff_cap=30.0,  # high enough not to cap in these attempts
     )
@@ -78,7 +91,9 @@ def test_get_backoff_sleep_basic(monkeypatch) -> None:
     assert scrape_client._get_backoff_sleep(3) == 4 + 0.25
 
 
-def test_web_page_retryable_with_numeric_retry_after(monkeypatch) -> None:
+def test_web_page_retryable_with_numeric_retry_after(
+    monkeypatch, valid_ua_file: Path
+) -> None:
     # Local FakeResponse matching your style
     class FakeResponse:
         def __init__(
@@ -105,7 +120,7 @@ def test_web_page_retryable_with_numeric_retry_after(monkeypatch) -> None:
 
     client = ScrapeClient(
         web_url=HttpUrl("http://example.com/jobs"),
-        header_provider=DummyHeaderProvider(),
+        header_provider=DummyHeaderProvider(ua_file=valid_ua_file),
     )
 
     sleeps = []
@@ -130,7 +145,7 @@ def test_web_page_retryable_with_numeric_retry_after(monkeypatch) -> None:
 
 
 def test_web_page_retryable_with_malformed_retry_after_uses_backoff(
-    monkeypatch,
+    monkeypatch, valid_ua_file: Path
 ) -> None:
     class FakeResponse:
         def __init__(self, status_code: int = 200, headers: Optional[dict] = None):
@@ -147,7 +162,7 @@ def test_web_page_retryable_with_malformed_retry_after_uses_backoff(
 
     client = ScrapeClient(
         web_url=HttpUrl("http://example.com/jobs"),
-        header_provider=DummyHeaderProvider(),
+        header_provider=DummyHeaderProvider(ua_file=valid_ua_file),
     )
 
     sleeps = []
@@ -179,7 +194,9 @@ def test_web_page_retryable_with_malformed_retry_after_uses_backoff(
     assert sleeps == [0.3]
 
 
-def test_web_page_non_retryable_raises_then_retries_via_exception(monkeypatch) -> None:
+def test_web_page_non_retryable_raises_then_retries_via_exception(
+    monkeypatch, valid_ua_file: Path
+) -> None:
     class FakeResponse:
         def __init__(self, status_code: int = 200):
             self.status_code = status_code
@@ -195,7 +212,7 @@ def test_web_page_non_retryable_raises_then_retries_via_exception(monkeypatch) -
 
     client = ScrapeClient(
         web_url=HttpUrl("http://example.com/jobs"),
-        header_provider=DummyHeaderProvider(),
+        header_provider=DummyHeaderProvider(ua_file=valid_ua_file),
     )
 
     sleeps = []
@@ -226,7 +243,7 @@ def test_web_page_non_retryable_raises_then_retries_via_exception(monkeypatch) -
 
 
 def test_web_page_last_attempt_retryable_raises_scrape_client_error(
-    monkeypatch,
+    monkeypatch, valid_ua_file: Path
 ) -> None:
     from app.infrastructure.http.scraper.scrape_client_error import ScrapeClientError
 
@@ -246,7 +263,7 @@ def test_web_page_last_attempt_retryable_raises_scrape_client_error(
 
     client = ScrapeClient(
         web_url=HttpUrl("http://example.com/jobs"),
-        header_provider=DummyHeaderProvider(),
+        header_provider=DummyHeaderProvider(ua_file=valid_ua_file),
         max_retries=2,  # make it short and explicit
     )
 
@@ -315,7 +332,7 @@ def test_empty_or_invalid_file_raises_header_provider(
 
 def test_invalid_after_filtering_triggers_valueerror_header_provider(
     ua_file_invalid: Path,
-):
+) -> None:
     with pytest.raises(ValueError):
         RandomHeaderProvider(ua_file=ua_file_invalid)
 
@@ -345,8 +362,10 @@ def test_invalid_after_filtering_triggers_valueerror_header_provider(
         ),
     ],
 )
-def test_header_linkedin_referer_logic_header_provider(url, expected_referer):
-    rhp = RandomHeaderProvider()
+def test_header_linkedin_referer_logic_header_provider(
+    url: str, expected_referer: str | None, valid_ua_file: Path
+) -> None:
+    rhp = RandomHeaderProvider(ua_file=valid_ua_file)
     h = rhp.header(HttpUrl(url))  # let Pydantic validate/coerce
 
     # Standard keys always present

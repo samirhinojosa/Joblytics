@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Self
 from pydantic import BaseModel, ConfigDict, PrivateAttr, model_validator, HttpUrl
 import logging
-from app.core.settings import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +21,15 @@ class RandomHeaderProvider(BaseModel):
         Load the UAs file, filter out empty lines and comments. Save the list to _uas
         """
 
-        ## Fetching UA file path from settings (dependencies)
-        settings = get_settings()
-        UA_FILE_PATH = settings.UA_FILE_PATH
+        if self.ua_file:
+            p = Path(self.ua_file).expanduser().resolve()
+        else:
+            ## Fetching UA file path from settings (dependencies)
 
-        p = Path(self.ua_file).expanduser().resolve() if self.ua_file else UA_FILE_PATH
+            from app.core.settings import get_settings
+
+            settings = get_settings()
+            p = Path(settings.UA_FILE_PATH).expanduser().resolve()
 
         if not p.exists():
             raise FileNotFoundError(f"UAs file not found: {p} (cwd={Path.cwd()})")
