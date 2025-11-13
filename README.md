@@ -19,24 +19,10 @@ Joblytics aims to provide a modern, scalable and modular framework to:
 - Poetry
 - Docker Compose
 
-## 📂 Project Structure (overview)
-    .
-    ├── app
-        ├── core                    # Central application configuration (settings, environment, logging)
-        ├── domain
-            ├── exceptions          # Domain-level exceptions and business-rule violations
-            ├── schemas             # Pydantic models (DTOs) for validation and serialization
-        ├── infrastructure
-            ├── http                # HTTP client, scraper utilities, and header providers
-            ├── ingestion           # Scrapers and data ingestion workflows
-            ├── repositories        # Concrete implementations of data access (DB, cache, etc.)
-            ├── services            # Integrations with external services/APIs (e.g., ML, third-party APIs)
-    ├── notebooks                   # Experimental development area (marimo notebooks)
-    ├── test                        # Unit and integration tests
-    ├── LICENSE
-    ├── poetry.lock
-    ├── pyproject.toml              # Poetry configuration
-    └── README.md
+## ▶️ Running the Project (Scraping LinkedIn Jobs)
+```bash
+python main.py
+```
 
 ## 🚀 Installation
 
@@ -54,18 +40,12 @@ Recommended for deployment or production-like environments:
 make install-prod
 ```
 
-### 🐘 PostgreSQL Setup
+### 🐘 Database setup (PostgreSQL)
 Joblytics uses PostgreSQL 16.4 as its local development database.</br>
 The database is orchestrated through Docker Compose, ensuring consistent environments and easy teardown/rebuild.
 
 #### ⚙️ Environment variables (.env)
 ```bash
-# Log path
-LOG_FILE=/var/log/joblytics/app.log
-
-# Set timezone for the container
-TZ=UTC
-
 # Database credentials
 POSTGRES_USER=joblytics
 POSTGRES_PASSWORD=joblytics_pwd
@@ -73,7 +53,7 @@ POSTGRES_DB=joblytics_db
 ```
 🧠 Tip: keep your `.env` file out of version control if you ever store real credentials.
 
-#### 🚀 Common database commands
+#### 🚀 Common database (Docker) commands
 | Action                               | Command                           |
 | ------------------------------------ | --------------------------------- |
 | Start the database                   | `docker compose up -d postgres`   |
@@ -83,14 +63,14 @@ POSTGRES_DB=joblytics_db
 | Remove container but keep data       | `docker compose down`             |
 | Remove everything (including volume) | `docker compose down -v`          |
 
-### 📝 Log file permissions (important)
-If the application writes to:
-
+### 📝 Log files
+#### ⚙️ Environment variables (.env)
 ```bash
-/var/log/joblytics/app.log
+# Log path
+LOG_FILE=/var/log/joblytics/app.log
 ```
-
-and you see a PermissionError, fix it with:
+#### Log file permissions (important)
+If you see a PermissionError, fix it with:
 
 ```bash
 sudo mkdir -p /var/log/joblytics
@@ -113,7 +93,29 @@ The Makefile provides a standardized development workflow:
 | `make format`     | Format + lint + type-check (no tests)                            |
 | `make quality`    | Full quality gate: format, lint, type-check, and strict coverage |
 
-### 🧪 Notebooks & Experimental Development (Marimo)
+## 📂 Project Structure (overview)
+    .
+    ├── app
+        ├── core                    # Central application configuration (settings, environment, logging)
+        ├── domain
+            ├── exceptions          # Domain-level exceptions and business-rule violations
+            ├── schemas             # Pydantic models (DTOs) for validation and serialization
+        ├── infrastructure
+            ├── http                # HTTP client, scraper utilities, and header providers
+            ├── ingestion           # Scrapers and data ingestion workflows
+            ├── repositories        # Concrete implementations of data access (DB, cache, etc.)
+            ├── services            # Integrations with external services/APIs (e.g., ML, third-party APIs)
+    ├── notebooks                   # Experimental development area (marimo notebooks)
+    ├── test                        # Unit and integration tests
+    ├── docker-compose.yml
+    ├── main.py
+    ├── Makefile
+    ├── LICENSE
+    ├── poetry.lock
+    ├── pyproject.toml              # Poetry configuration
+    └── README.md
+
+## 🧪 Notebooks & Experimental Development (Marimo)
 The project includes a /notebooks directory intended for:
 - Data exploration
 - Rapid prototyping

@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     # timezone
     TZ: str = "UTC"
 
-    # Database information (real credentiasl read from .env)
+    # Database information (real credentials read from .env)
     POSTGRES_USER: str = "user"
     POSTGRES_PASSWORD: str = "pwd"
     POSTGRES_DB: str = "db"
