@@ -107,9 +107,9 @@ The Makefile provides a standardized development workflow:
             ├── services            # Integrations with external services/APIs (e.g., ML, third-party APIs)
     ├── notebooks                   # Experimental development area (marimo notebooks)
     ├── test                        # Unit and integration tests
-    ├── docker-compose.yml
-    ├── main.py
-    ├── Makefile
+    ├── docker-compose.yml          # Local PostgreSQL setup for development
+    ├── main.py                     # Entry point for scraping workflows (start here)
+    ├── Makefile                    # Developer automation: install, lint, test, coverage, quality gates
     ├── LICENSE
     ├── poetry.lock
     ├── pyproject.toml              # Poetry configuration
