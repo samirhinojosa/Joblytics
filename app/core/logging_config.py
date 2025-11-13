@@ -1,11 +1,9 @@
+from app.core.settings import Settings
 from logging.config import dictConfig
 from pathlib import Path
-from app.core.settings import get_settings
 
 
-def setup_logging() -> None:
-    settings = get_settings()
-
+def setup_logging(settings: Settings) -> None:
     LOG_LEVEL = settings.LOG_LEVEL
     LOG_FILE: Path = settings.resolve_log_file()
 

@@ -42,6 +42,14 @@ class Settings(BaseSettings):
     APP_DIR: Path = Path(__file__).resolve().parent.parent
     PROJECT_ROOT: Path = APP_DIR.parent
 
+    # timezone
+    TZ: str = "UTC"
+
+    # Database information (real credentiasl read from .env)
+    POSTGRES_USER: str = "user"
+    POSTGRES_PASSWORD: str = "pwd"
+    POSTGRES_DB: str = "db"
+
     # General API information
     # OPENAPI_URL: str = "/openapi.json"
 
@@ -97,5 +105,5 @@ def get_settings(*, read_env: bool = True, **overrides: Any) -> Settings:
     Runtime: get_settings()               -> reads .env (cached).
     Tests:   get_settings(read_env=False) -> ignores .env; pass overrides explicitly.
     """
-    cls = RuntimeSettings if read_env else TestSettings
+    cls = TestSettings if not read_env else RuntimeSettings
     return cls(**overrides)

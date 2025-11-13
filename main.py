@@ -1,9 +1,14 @@
+from app.core.settings import get_settings
 from app.core.logging_config import setup_logging
 from app.infrastructure.ingestion.linkedin_scrapper import LinkedInScrapper, TimePosted
 
 
 def main():
-    setup_logging()
+    settings = get_settings(LOG_LEVEL="INFO")
+    setup_logging(settings)
+
+    print("POSTGRES_USER from settings:", settings.POSTGRES_USER)
+    print("Resolved log file:", settings.resolve_log_file())
 
     linkedin_scrapper = LinkedInScrapper(
         title="Python", location="Grenoble", time_posted=TimePosted.WEEK
