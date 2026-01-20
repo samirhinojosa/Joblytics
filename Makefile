@@ -25,7 +25,7 @@ else
 	NC   := \033[0m
 endif
 
-.PHONY: clean clean-all cov cov-strict format fmt help install install-prod lint marimo quality test type
+.PHONY: clean clean-all cov cov-strict format fmt help install install-prod lint marimo jupyterlab quality test type
 
 define LOG_FILE
 	@LOG_FILE="$$( $(POETRY) run python -c 'from app.core.settings import get_settings; \
@@ -94,6 +94,9 @@ marimo: ## Run marimo on a given notebook: NB=my_experiment (will open notebooks
 	fi; \
 	echo "🚀 Opening marimo with $$FILE"; \
 	$(POETRY) run marimo edit "$$FILE" --headless
+
+jupyterlab: ## Run Jupyter Lab on root
+	@$(POETRY) run jupyter lab $(NOTEBOOKS_DIR)
 
 fmt: ## Format code (Ruff formatter) and apply safe lint autofixes
 	@$(POETRY) run ruff format $(SRC)

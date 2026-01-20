@@ -115,7 +115,7 @@ The Makefile provides a standardized development workflow:
     ├── pyproject.toml              # Poetry configuration
     └── README.md
 
-## 🧪 Notebooks & Experimental Development (Marimo)
+## 🧪 Notebooks & Experimental Development (Marimo or Jupyterlab)
 The project includes a /notebooks directory intended for:
 - Data exploration
 - Rapid prototyping
@@ -123,8 +123,15 @@ The project includes a /notebooks directory intended for:
 - Developing scrapers, transformations, or analysis drafts
 - Interactive workflows using marimo
 
+### Marimo
 You can create/open marimo-ready notebooks interactively:
 ```bash
 make marimo NB=my_experiment
 ```
 Marimo provides an interactive development UI that behaves similarly to Jupyter but is fully Python-native and reproducible.
+
+### Jupyter Lab
+You can open the Jupyter Lab environment as follows:
+```bash
+make jupyterlab
+```
