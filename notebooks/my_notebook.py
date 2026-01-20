@@ -12,6 +12,18 @@ def _():
 
 @app.cell
 def _():
+    a = 3 + 8
+    return (a,)
+
+
+@app.cell
+def _(a):
+    print(a)
+    return
+
+
+@app.cell
+def _():
     return
 
 

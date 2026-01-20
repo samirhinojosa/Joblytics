@@ -61,8 +61,19 @@ class LinkedInScrapper(BaseModel):
         time_posted: Optional[TimePosted] = None,
         remote_mode: Optional[RemoteMode] = None,
     ) -> HttpUrl:
-        """
-        Generate the LinkedIn job search URL using the model values (and allowing for occasional overrides)
+        """Generate the LinkedIn job search URL using the model values (and allowing for occasional overrides)
+
+        Args:
+            title (Optional[str]): Job title override. If None, uses the model title.
+            location (Optional[str]): Job location override. If None, uses the model location.
+            distance (Optional[int]): Search radius override in km. If None, uses the model distance.
+            geo_id (Optional[int]): LinkedIn geoId to restrict the search area.
+            offset (Optional[int]): Pagination offset for job listings.
+            time_posted (Optional[TimePosted]): Filter by time posted. If None, uses the model value.
+            remote_mode (Optional[RemoteMode]): Onsite / hybrid / remote filter. If None, uses the model value.
+
+        Returns:
+            HttpUrl: Fully built LinkedIn job search URL.
         """
         params = {
             "keywords": (title or self.title),
