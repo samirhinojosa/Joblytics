@@ -45,13 +45,6 @@ python cli.py -v "Data Engineer" Grenoble
 ```
 ℹ️ When `--verbose` or `-v` is enabled, the application initializes logging with DEBUG level instead of INFO.
 
-
-
-
-
-
-
-
 ### ▶️ Scraping LinkedIn Jobs
 
 ```bash
