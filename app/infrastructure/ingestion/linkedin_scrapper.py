@@ -20,10 +20,18 @@ logger = logging.getLogger(__name__)
 
 
 class TimePosted(str, Enum):
-    ALL = ""
-    DAY = "r86400"
-    WEEK = "r604800"
-    MONTH = "r2592000"
+    ALL = "all"
+    DAY = "day"
+    WEEK = "week"
+    MONTH = "month"
+
+
+TIMEPOSTED_TO_LINKEDIN = {
+    TimePosted.ALL: "",
+    TimePosted.DAY: "r86400",
+    TimePosted.WEEK: "r604800",
+    TimePosted.MONTH: "r2592000",
+}
 
 
 class RemoteMode(str, Enum):
@@ -81,7 +89,10 @@ class LinkedInScrapper(BaseModel):
             "distance": (distance if distance is not None else self.distance),
         }
 
-        tp = (time_posted or self.time_posted).value
+        # tp = (time_posted or self.time_posted).value
+        # time_posted=TIMEPOSTED_TO_LINKEDIN[time_posted],
+        tp_enum = time_posted or self.time_posted
+        tp = TIMEPOSTED_TO_LINKEDIN[tp_enum]
         if tp:
             params["f_TPR"] = tp
 

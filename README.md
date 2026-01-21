@@ -19,10 +19,36 @@ Joblytics aims to provide a modern, scalable and modular framework to:
 - Poetry
 - Docker Compose
 
-## ▶️ Running the Project (Scraping LinkedIn Jobs)
+## 🧑‍💻 Command Line Interface (Typer)
+
+Joblytics exposes a typed, documented CLI built with Typer, designed for reproducible scraping workflows and scripting.
+
+### 🔍 Available commands
 ```bash
-python main.py
+python cli.py --help
 ```
+
+### ▶️ Scraping LinkedIn Jobs
+
+```bash
+python cli.py "Data Engineer" Paris
+```
+
+### ⏱ Filter by publication date
+The `--time-posted` option allows filtering offers by publication recency.
+```bash
+python cli.py "Data Engineer" Paris --time-posted day
+```
+
+### Supported values
+| Value   | Meaning                       |
+| ------- | ----------------------------- |
+| `all`   | All available offers          |
+| `day`   | Published in the last 24h     |
+| `week`  | Published in the last 7 days  |
+| `month` | Published in the last 30 days |
+
+ℹ️ The CLI values are mapped internally to LinkedIn technical filters (r86400, r604800, etc.), but remain human-readable at CLI level.
 
 ## 🚀 Installation
 
@@ -107,8 +133,8 @@ The Makefile provides a standardized development workflow:
             ├── services            # Integrations with external services/APIs (e.g., ML, third-party APIs)
     ├── notebooks                   # Experimental development area (marimo notebooks)
     ├── test                        # Unit and integration tests
+    ├── cli.py                     # # Typer-based CLI entrypoint for scraping workflows (start here)
     ├── docker-compose.yml          # Local PostgreSQL setup for development
-    ├── main.py                     # Entry point for scraping workflows (start here)
     ├── Makefile                    # Developer automation: install, lint, test, coverage, quality gates
     ├── LICENSE
     ├── poetry.lock
