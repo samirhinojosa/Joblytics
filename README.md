@@ -23,10 +23,34 @@ Joblytics aims to provide a modern, scalable and modular framework to:
 
 Joblytics exposes a typed, documented CLI built with Typer, designed for reproducible scraping workflows and scripting.
 
-### 🔍 Available commands
+### 🔍 Show CLI help
 ```bash
 python cli.py --help
 ```
+
+### 🌍 Global options
+These options apply to __all commands__.
+| Option      | Alias | Description                |
+| ----------- | ----- | -------------------------- |
+| `--verbose` | `-v`  | Enable DEBUG-level logging |
+
+
+Example:
+```bash
+python cli.py --verbose --help
+```
+or
+```bash
+python cli.py -v "Data Engineer" Grenoble
+```
+ℹ️ When `--verbose` or `-v` is enabled, the application initializes logging with DEBUG level instead of INFO.
+
+
+
+
+
+
+
 
 ### ▶️ Scraping LinkedIn Jobs
 
