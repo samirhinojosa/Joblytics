@@ -4,8 +4,8 @@ from typing import Optional
 import requests
 import pytest
 from pathlib import Path
-from app.infrastructure.http.header_provider import RandomHeaderProvider
-from app.infrastructure.http.scraper.scrape_client import ScrapeClient
+from joblytics.infrastructure.http.header_provider import RandomHeaderProvider
+from joblytics.infrastructure.http.scraper.scrape_client import ScrapeClient
 
 
 @pytest.fixture
@@ -69,7 +69,7 @@ def test_web_page(monkeypatch, valid_ua_file: Path) -> None:
 def test_get_backoff_sleep_basic(monkeypatch, valid_ua_file: Path) -> None:
     # Freeze jitter to a fixed value on the module where it's used
     monkeypatch.setattr(
-        "app.infrastructure.http.scraper.scrape_client.random.uniform",
+        "joblytics.infrastructure.http.scraper.scrape_client.random.uniform",
         lambda a, b: 0.25,
         raising=True,
     )
@@ -170,7 +170,7 @@ def test_web_page_retryable_with_malformed_retry_after_uses_backoff(
 
     # Make backoff deterministic for attempt=1
     monkeypatch.setattr(
-        "app.infrastructure.http.scraper.scrape_client.ScrapeClient._get_backoff_sleep",
+        "joblytics.infrastructure.http.scraper.scrape_client.ScrapeClient._get_backoff_sleep",
         lambda self, attempt: 0.3,
         raising=True,
     )
@@ -219,7 +219,7 @@ def test_web_page_non_retryable_raises_then_retries_via_exception(
     monkeypatch.setattr("time.sleep", lambda s: sleeps.append(s))
     # Deterministic backoff
     monkeypatch.setattr(
-        "app.infrastructure.http.scraper.scrape_client.ScrapeClient._get_backoff_sleep",
+        "joblytics.infrastructure.http.scraper.scrape_client.ScrapeClient._get_backoff_sleep",
         lambda self, attempt: 0.2,
         raising=True,
     )
@@ -245,7 +245,9 @@ def test_web_page_non_retryable_raises_then_retries_via_exception(
 def test_web_page_last_attempt_retryable_raises_scrape_client_error(
     monkeypatch, valid_ua_file: Path
 ) -> None:
-    from app.infrastructure.http.scraper.scrape_client_error import ScrapeClientError
+    from joblytics.infrastructure.http.scraper.scrape_client_error import (
+        ScrapeClientError,
+    )
 
     class FakeResponse:
         def __init__(self, status_code: int = 200, raise_http: bool = False):
@@ -271,7 +273,7 @@ def test_web_page_last_attempt_retryable_raises_scrape_client_error(
     monkeypatch.setattr("time.sleep", lambda s: None)
     # Deterministic backoff for attempt 1
     monkeypatch.setattr(
-        "app.infrastructure.http.scraper.scrape_client.ScrapeClient._get_backoff_sleep",
+        "joblytics.infrastructure.http.scraper.scrape_client.ScrapeClient._get_backoff_sleep",
         lambda self, attempt: 0.1,
         raising=True,
     )

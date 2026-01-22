@@ -1,22 +1,42 @@
-from app.core.settings import Settings
+from joblytics.core.config.settings import Settings
 from logging.config import dictConfig
 from pathlib import Path
 
 
-def setup_logging(settings: Settings) -> None:
-    LOG_LEVEL = settings.LOG_LEVEL
-    LOG_FILE: Path = settings.resolve_log_file()
+def compute_log_file(settings: Settings, verbose: bool) -> Path:
+    return (
+        (settings.PROJECT_ROOT / "logs/joblytics.log")
+        if verbose
+        else settings.resolve_log_file()
+    )
+
+
+def setup_logging(settings: Settings, verbose: bool = False) -> None:
+    """
+    Logging policy:
+      - App logs (joblytics.*): INFO by default, DEBUG with --verbose.
+      - Third-party logs: WARNING by default.
+    """
+
+    app_level = "DEBUG" if verbose else "INFO"
+    THIRD_PARTY_LEVEL = "WARNING"
+
+    # Defining Logging file path
+    # log_file: Path = (
+    #     Path("logs/joblytics.log") if verbose else settings.resolve_log_file()
+    # )
+    log_file = compute_log_file(settings, verbose)
 
     try:
-        LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
-        with LOG_FILE.open("a"):
+        log_file.parent.mkdir(parents=True, exist_ok=True)
+        with log_file.open("a"):
             pass
     except Exception:
         fallback = settings.PROJECT_ROOT / settings.LOG_FILE
         fallback.parent.mkdir(parents=True, exist_ok=True)
-        LOG_FILE = fallback
+        log_file = fallback
 
-    LOGGING_CONFIG = {
+    logging_config = {
         "version": 1,
         "disable_existing_loggers": False,
         "formatters": {
@@ -43,28 +63,37 @@ def setup_logging(settings: Settings) -> None:
             "console": {
                 "class": "logging.StreamHandler",
                 "formatter": "colored",
-                "level": LOG_LEVEL.name,
+                "level": "DEBUG",  # keep handlers open; control via logger levels
             },
             # File for technical logs
             "file": {
                 "class": "logging.handlers.RotatingFileHandler",
-                "filename": str(LOG_FILE),
+                "filename": str(log_file),
                 "formatter": "standard",
-                "level": "INFO",
+                "level": "DEBUG",
                 "maxBytes": 10 * 1024 * 1024,  # 10 MB
                 "backupCount": 7,
                 "encoding": "utf-8",
                 "delay": True,
             },
         },
+        # Root is quiet
+        "root": {
+            "handlers": ["console", "file"],
+            "level": THIRD_PARTY_LEVEL,
+        },
+        # Only app namespace is chatty
         "loggers": {
-            # Main logger
-            "app": {
+            "joblytics": {
                 "handlers": ["console", "file"],
-                "level": LOG_LEVEL.name,
+                "level": app_level,
                 "propagate": False,
             },
+            # Optional: pin typical noisy libs to third_party_level
+            "urllib3": {"level": THIRD_PARTY_LEVEL},
+            "requests": {"level": THIRD_PARTY_LEVEL},
+            "httpx": {"level": THIRD_PARTY_LEVEL},
         },
     }
 
-    dictConfig(LOGGING_CONFIG)
+    dictConfig(logging_config)

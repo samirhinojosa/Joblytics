@@ -1,34 +1,31 @@
-[project]
+[tool.poetry]
 name = "joblytics"
 version = "0.1.0"
-description = ""
-authors = [
-    {name = "Samir Hinojosa", email = "samirhinojosa@gmail.com"}
-]
+description = "Joblytics is a Python-based tool to scrape and analyse job listings from platforms such as LinkedIn, Welcome to the Jungle, among others."
 readme = "README.md"
-requires-python = ">=3.12,<3.13"
-dependencies = [
-    "dbt-postgres (>=1.9.0,<2.0.0)",
-    "dbt-core (>=1.10.11,<2.0.0)",
-    "beautifulsoup4 (>=4.13.5,<5.0.0)",
-    "pydantic (>=2.11.9,<3.0.0)",
-    "pydantic-settings (>=2.10.1,<3.0.0)",
-    "logging (>=0.4.9.6,<0.5.0.0)",
-    "colorlog (>=6.10.1,<7.0.0)",
-    "pydoclint (>=0.8.1,<0.9.0)",
-    "mkdocs (>=1.6.1,<2.0.0)",
-    "interrogate (>=1.7.0,<2.0.0)",
-    "pydocstyle (>=6.3.0,<7.0.0)",
-    "fastapi (>=0.128.0,<0.129.0)",
-    "typer (>=0.21.1,<0.22.0)",
+authors = [
+     "Samir Hinojosa <samirhinojosa@gmail.com>"
+]
+packages = [
+    { include = "joblytics", from = "src" }
 ]
 
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry]
-package-mode = false
+[tool.poetry.dependencies]
+python = ">=3.12,<3.13"
+dbt-postgres = ">=1.9.0,<2.0.0"
+dbt-core = ">=1.10.11,<2.0.0"
+beautifulsoup4 = ">=4.13.5,<5.0.0"
+pydantic = ">=2.11.9,<3.0.0"
+pydantic-settings = ">=2.10.1,<3.0.0"
+colorlog = ">=6.10.1,<7.0.0"
+pydoclint = ">=0.8.1,<0.9.0"
+mkdocs = ">=1.6.1,<2.0.0"
+interrogate = ">=1.7.0,<2.0.0"
+pydocstyle = ">=6.3.0,<7.0.0"
+fastapi = ">=0.128.0,<0.129.0"
+typer = ">=0.21.1,<0.22.0"
+tabulate = "^0.9.0"
+types-tabulate = "^0.9.0.20241207"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.2"
@@ -42,9 +39,15 @@ types-requests = "^2.32.4.20250913"
 
 [tool.poetry.group.notebooks.dependencies]
 pandas = "^2.3.3"
-tabulate = "^0.9.0"
 jupyterlab = "^4.5.2"
 marimo = "^0.19.4"
+
+[tool.poetry.scripts]
+joblytics = "joblytics.cli:app"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.mypy]
 python_version = "3.12"
@@ -57,7 +60,8 @@ warn_return_any = true
 no_implicit_optional = true
 show_error_codes = true
 pretty = true
-explicit_package_bases = true
+mypy_path = "src"
+packages = ["joblytics"]
 
 # Relax rules for tests (allow untyped functions)
 [[tool.mypy.overrides]]
@@ -65,19 +69,14 @@ module = "tests.*"
 disallow_untyped_defs = false
 check_untyped_defs = false
 
-# Ignore missing types for external libs like dbt_*, pandas.*
-# [[tool.mypy.overrides]]
-# module = ["dbt_*", "pandas.*"]
-# ignore_missing_imports = true
-
 [tool.coverage.run]
 omit = [
     "*/__init__.py",
-    "app/core/logging_config.py",
-    "app/domain/exceptions.py",
-    "app/infrastructure/http/scraper/scrape_client_error.py",
+    "src/joblytics/core/config/logger.py",
+    "src/joblytics/domain/exceptions.py",
+    "src/joblytics/infrastructure/http/scraper/scrape_client_error.py",
 ]
 
 [tool.pydoclint]
 style = "google"
-exclude = '\.venv|build|dist|migrations|__pycache__|\.mypy_cache|\.pytest_cache|\.ruff_cache|\.ipynb_checkpoints|__marimo__|\.vscode|notebooks|test|__init__\.py$'
+exclude = '\.venv|build|dist|migrations|__pycache__|\.mypy_cache|\.pytest_cache|\.ruff_cache|\.ipynb_checkpoints|__marimo__|\.vscode|notebooks|tests|__init__\.py$'

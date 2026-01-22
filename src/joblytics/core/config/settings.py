@@ -1,8 +1,7 @@
 from enum import Enum
 from pathlib import Path
-from typing import Self, Any
+from typing import Any
 from functools import lru_cache
-from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -59,23 +58,23 @@ class Settings(BaseSettings):
 
     ## User agents file
     UA_FILE_PATH: Path = (
-        APP_DIR / "infrastructure" / "http" / "data" / "user_agents.txt"
+        PROJECT_ROOT / "infrastructure" / "http" / "assets" / "user_agents.txt"
     )
 
     # Loggin information
     LOG_LEVEL: LogLevel = LogLevel.INFO
     LOG_FILE: Path = Path("/var/log/joblytics/app.log")
 
-    # Defining Logging file path
-    @model_validator(mode="after")
-    def override_log_file_for_debug(self) -> Self:
-        """
-        - If DEBUG -> use local log: logs/joblytics.log
-        - If not DEBUT -> default /var/log/joblytics/app.log
-        """
-        if self.LOG_LEVEL == LogLevel.DEBUG:
-            self.LOG_FILE = Path("logs/joblytics.log")
-        return self
+    # # Defining Logging file path
+    # @model_validator(mode="after")
+    # def override_log_file_for_debug(self) -> Self:
+    #     """
+    #     - If DEBUG -> use local log: logs/joblytics.log
+    #     - If not DEBUT -> default /var/log/joblytics/app.log
+    #     """
+    #     if self.LOG_LEVEL == LogLevel.DEBUG:
+    #         self.LOG_FILE = Path("logs/joblytics.log")
+    #     return self
 
     def resolve_log_file(self) -> Path:
         p = self.LOG_FILE

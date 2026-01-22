@@ -26,7 +26,7 @@ class RandomHeaderProvider(BaseModel):
         else:
             ## Fetching UA file path from settings (dependencies)
 
-            from app.core.settings import get_settings
+            from joblytics.core.config.settings import get_settings
 
             settings = get_settings()
             p = Path(settings.UA_FILE_PATH).expanduser().resolve()
