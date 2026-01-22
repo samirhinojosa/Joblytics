@@ -4,8 +4,10 @@ import requests
 import logging
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, HttpUrl
 from typing import Annotated, Optional, cast
-from app.infrastructure.http.header_provider import RandomHeaderProvider
-from app.infrastructure.http.scraper.scrape_client_error import ScrapeClientError
+from joblytics.infrastructure.http.header_provider import RandomHeaderProvider
+from joblytics.infrastructure.http.scraper.scrape_client_error import (
+    ScrapeClientError,
+)
 
 
 logger = logging.getLogger(__name__)

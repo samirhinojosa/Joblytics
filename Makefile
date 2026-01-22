@@ -1,9 +1,9 @@
 # Project settings
 APP_NAME:=joblytics
-APP_MODULE:=app.main:app
+APP_MODULE:=joblytics.main:app
 POETRY?=poetry
-SRC:=app tests
-PKG:=app
+SRC:=src tests
+PKG:=joblytics
 COV_FAIL_UNDER:=85
 
 NOTEBOOKS_DIR := notebooks
@@ -28,7 +28,7 @@ endif
 .PHONY: clean clean-all cov cov-strict format fmt help install install-prod lint marimo jupyterlab quality test type
 
 define LOG_FILE
-	@LOG_FILE="$$( $(POETRY) run python -c 'from app.core.settings import get_settings; \
+	@LOG_FILE="$$( $(POETRY) run python -c 'from joblytics.core.config.settings import get_settings; \
 	settings=get_settings(); print(settings.LOG_FILE)' )"; \
 	LOG_DIR="$$(dirname "$$LOG_FILE")"; \
 	if [ -z "$$LOG_FILE" ]; then \
@@ -36,12 +36,12 @@ define LOG_FILE
 	fi; \
 	if [ ! -d "$$LOG_DIR" ]; then \
 		echo "⚙️ Creating directory $$LOG_DIR"; \
-		sudo mkdir -p "$$LOG_DIR"; \
+		mkdir -p "$$LOG_DIR"; \
 	fi; \
 	if [ ! -f "$$LOG_FILE" ]; then \
 		echo "⚙️ Creating log file $$LOG_FILE"; \
-		sudo touch "$$LOG_FILE"; \
-		sudo chmod 664 "$$LOG_FILE"; \
+		touch "$$LOG_FILE"; \
+		chmod 664 "$$LOG_FILE"; \
 	else \
 		echo "✅ Log file already exists: $$LOG_FILE"; \
 	fi
@@ -64,7 +64,7 @@ endef
 define FORMAT
 	@$(POETRY) run ruff format $(SRC)
 	@$(POETRY) run ruff check --fix $(SRC)
-	@$(POETRY) run mypy $(SRC)
+	@$(POETRY) run mypy src/joblytics tests
 endef
 
 define COV-STRICT
@@ -77,7 +77,7 @@ install: ## Install everything (main + dev dependencies)
 	@$(LOG_FILE)
 
 install-prod: ## Install only production dependencies (no dev)
-	@$(POETRY) install --only main --no-root
+	@$(POETRY) install --only main
 	@$(LOG_FILE)
 
 marimo: ## Run marimo on a given notebook: NB=my_experiment (will open notebooks/my_experiment.py)
@@ -105,8 +105,8 @@ fmt: ## Format code (Ruff formatter) and apply safe lint autofixes
 lint: ## Lint code with Ruff (no changes)
 	@$(POETRY) run ruff check $(SRC)
 
-type: ## Run MyPy on /app & /tests (static type checking)
-	@$(POETRY) run mypy $(SRC)
+type: ## Run MyPy on src/joblytics & tests (static type checking)
+	@$(POETRY) run mypy src/joblytics tests
 
 test: ## Run all tests (pytest)
 	@$(POETRY) run pytest -q
@@ -123,6 +123,8 @@ format: ## Format, lint, and type-check only (no tests)
 quality:  ## Format, lint, type-check, and run tests with coverage (pre-commit/pre-push)
 	@$(FORMAT)
 	@$(COV-STRICT)
+	@$(MAKE) check-imports
+	@$(MAKE) check-no-src-imports
 
 clean: ## Remove Python and tool caches (mypy, pytest, ruff, notebooks)
 	@$(CLEAN)
@@ -136,6 +138,14 @@ clean-all: ## Remove all caches and .venv
 	else \
 		echo "✅  No .venv directory to remove."; \
 	fi
+
+check-imports: ## Ensure package import works and src.* imports are not required
+	@$(POETRY) run python -c "import joblytics; print(joblytics.__file__)"
+	@cd /tmp && ! $(POETRY) run python -c "import src.joblytics" 2>/dev/null
+
+check-no-src-imports: ## Fail if code imports from src.joblytics
+	@! grep -R --line-number -E '(^\s*from\s+src\.joblytics|^\s*import\s+src\.joblytics)' src tests 2>/dev/null
+
 
 help: ## Show this help
 	@echo "Makefile commands:"
