@@ -5,6 +5,7 @@ from joblytics.core.config.logger import setup_logging
 from joblytics.infrastructure.ingestion.linkedin_scrapper import (
     LinkedInScrapper,
     TimePosted,
+    WorkModality,
 )
 from joblytics.domain.exceptions.errors import NoOffersFoundError
 from joblytics.core.utils.cli import render_table
@@ -36,9 +37,13 @@ def main(
 def linkedIn_scrapper(
     title: str,
     location: str,
-    time_posted: TimePosted = typer.Option(
+    time_posted: TimePosted = typer.Argument(
         TimePosted.DAY,
         help="LinkedIn publication date: all, day (24h), week (7d), month (30d).",
+    ),
+    work_modality: WorkModality = typer.Argument(
+        WorkModality.ALL,
+        help="LinkedIn work modality: all, onsite, hybrid, remote.",
     ),
     show_table: bool = typer.Option(
         False,
@@ -55,11 +60,14 @@ def linkedIn_scrapper(
 
     try:
         logger.info(
-            f"LinkedIn scrape started (title={title}, location={location}, time_posted={time_posted.value})"
+            f"LinkedIn scrape started (title={title}, location={location}, time_posted={time_posted.value}, work_modality={work_modality.value})"
         )
 
         scrapper = LinkedInScrapper(
-            title=title, location=location, time_posted=time_posted
+            title=title,
+            location=location,
+            time_posted=time_posted,
+            work_modality=work_modality,
         )
         jobs_summary = scrapper.fetch_offers_summary() or []
         logger.debug(f"Fetched summary offers: {len(jobs_summary)}")

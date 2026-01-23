@@ -4,13 +4,14 @@ from typing import Optional
 import requests
 import pytest
 from pathlib import Path
+
 from joblytics.infrastructure.http.header_provider import RandomHeaderProvider
 from joblytics.infrastructure.http.scraper.scrape_client import ScrapeClient
+from joblytics.infrastructure.http.policies.http_policy import HttpPolicy
 
 
 @pytest.fixture
 def valid_ua_file(tmp_path: Path) -> Path:
-    # A desktop UA line (>= 60 chars, not mobile)
     line = (
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
         "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
@@ -25,8 +26,33 @@ class DummyHeaderProvider(RandomHeaderProvider):
         return {"User-Agent": "pytest-UA"}
 
 
+def _patch_settings(monkeypatch, *, provider: str, policy: HttpPolicy) -> None:
+    """
+    Monkeypatch get_settings() in the scrape_client module so ScrapeClient
+    always resolves a deterministic policy for tests.
+    """
+
+    class FakeSettings:
+        def http_policy(self, p: str) -> HttpPolicy:
+            assert p == provider
+            return policy
+
+    monkeypatch.setattr(
+        "joblytics.infrastructure.http.scraper.scrape_client.get_settings",
+        lambda: FakeSettings(),
+        raising=True,
+    )
+
+
 def test_web_page(monkeypatch, valid_ua_file: Path) -> None:
+    _patch_settings(
+        monkeypatch,
+        provider="linkedin",
+        policy=HttpPolicy(max_retries=1),  # keep minimal
+    )
+
     client = ScrapeClient(
+        provider="linkedin",
         web_url=HttpUrl("http://example.com/jobs"),
         header_provider=DummyHeaderProvider(ua_file=valid_ua_file),
     )
@@ -38,7 +64,7 @@ def test_web_page(monkeypatch, valid_ua_file: Path) -> None:
             headers: Optional[dict] = None,
             text: str = "OK",
         ):
-            self.status_code = 200
+            self.status_code = status_code
             self.headers: dict = headers or {}
             self._text = text
 
@@ -58,7 +84,6 @@ def test_web_page(monkeypatch, valid_ua_file: Path) -> None:
         assert headers and headers.get("User-Agent") == "pytest-UA"
         return FakeResponse(200)
 
-    # Bind the function as a bound method on this instance
     bound = types.MethodType(fake_get, client._session)
     monkeypatch.setattr(client._session, "get", bound)
 
@@ -67,34 +92,42 @@ def test_web_page(monkeypatch, valid_ua_file: Path) -> None:
 
 
 def test_get_backoff_sleep_basic(monkeypatch, valid_ua_file: Path) -> None:
-    # Freeze jitter to a fixed value on the module where it's used
+    # policy determinista: backoff_factor=1.0; cap alto
+    _patch_settings(
+        monkeypatch,
+        provider="linkedin",
+        policy=HttpPolicy(backoff_factor=1.0, backoff_cap=30.0, max_retries=3),
+    )
+
+    # Freeze jitter inside the module where it's used
     monkeypatch.setattr(
         "joblytics.infrastructure.http.scraper.scrape_client.random.uniform",
         lambda a, b: 0.25,
         raising=True,
     )
 
-    scrape_client = ScrapeClient(
+    client = ScrapeClient(
+        provider="linkedin",
         web_url=HttpUrl("https://example.com"),
         header_provider=DummyHeaderProvider(ua_file=valid_ua_file),
-        backoff_factor=1.0,  # so base = 1 * 2^(attempt-1)
-        backoff_cap=30.0,  # high enough not to cap in these attempts
     )
 
-    # Freeze jitter to a fixed value
-    monkeypatch.setattr("random.uniform", lambda a, b: 0.25)
+    # attempt=1 -> base = 1.0 * 2^(0) = 1.0
+    assert client._get_backoff_sleep(1) == 1.0 + 0.25
 
-    # attempt = 1 → base=1*(2^(1-1)) = 1
-    assert scrape_client._get_backoff_sleep(1) == 1 + 0.25
-
-    # attempt = 3 → base = 1*(2^(3-1)) = 4
-    assert scrape_client._get_backoff_sleep(3) == 4 + 0.25
+    # attempt=3 -> base = 1.0 * 2^(2) = 4.0
+    assert client._get_backoff_sleep(3) == 4.0 + 0.25
 
 
 def test_web_page_retryable_with_numeric_retry_after(
     monkeypatch, valid_ua_file: Path
 ) -> None:
-    # Local FakeResponse matching your style
+    _patch_settings(
+        monkeypatch,
+        provider="linkedin",
+        policy=HttpPolicy(max_retries=2),  # 1 retry
+    )
+
     class FakeResponse:
         def __init__(
             self,
@@ -119,14 +152,14 @@ def test_web_page_retryable_with_numeric_retry_after(
                 raise requests.HTTPError(f"HTTP {self.status_code}")
 
     client = ScrapeClient(
+        provider="linkedin",
         web_url=HttpUrl("http://example.com/jobs"),
         header_provider=DummyHeaderProvider(ua_file=valid_ua_file),
     )
 
-    sleeps = []
-    monkeypatch.setattr("time.sleep", lambda s: sleeps.append(s))
+    sleeps: list[float] = []
+    monkeypatch.setattr("time.sleep", lambda s: sleeps.append(float(s)))
 
-    # First call: 429 with numeric Retry-After -> sleep exact value; Second call: 200 OK
     seq = [
         FakeResponse(status_code=429, headers={"Retry-After": "1.75"}),
         FakeResponse(status_code=200),
@@ -147,6 +180,12 @@ def test_web_page_retryable_with_numeric_retry_after(
 def test_web_page_retryable_with_malformed_retry_after_uses_backoff(
     monkeypatch, valid_ua_file: Path
 ) -> None:
+    _patch_settings(
+        monkeypatch,
+        provider="linkedin",
+        policy=HttpPolicy(max_retries=2),
+    )
+
     class FakeResponse:
         def __init__(self, status_code: int = 200, headers: Optional[dict] = None):
             self.status_code = status_code
@@ -161,14 +200,15 @@ def test_web_page_retryable_with_malformed_retry_after_uses_backoff(
                 raise requests.HTTPError(f"HTTP {self.status_code}")
 
     client = ScrapeClient(
+        provider="linkedin",
         web_url=HttpUrl("http://example.com/jobs"),
         header_provider=DummyHeaderProvider(ua_file=valid_ua_file),
     )
 
-    sleeps = []
-    monkeypatch.setattr("time.sleep", lambda s: sleeps.append(s))
+    sleeps: list[float] = []
+    monkeypatch.setattr("time.sleep", lambda s: sleeps.append(float(s)))
 
-    # Make backoff deterministic for attempt=1
+    # deterministic backoff
     monkeypatch.setattr(
         "joblytics.infrastructure.http.scraper.scrape_client.ScrapeClient._get_backoff_sleep",
         lambda self, attempt: 0.3,
@@ -176,9 +216,7 @@ def test_web_page_retryable_with_malformed_retry_after_uses_backoff(
     )
 
     seq = [
-        FakeResponse(
-            status_code=503, headers={"Retry-After": "abc"}
-        ),  # malformed -> fallback to backoff
+        FakeResponse(status_code=503, headers={"Retry-After": "abc"}),
         FakeResponse(status_code=200),
     ]
 
@@ -197,6 +235,12 @@ def test_web_page_retryable_with_malformed_retry_after_uses_backoff(
 def test_web_page_non_retryable_raises_then_retries_via_exception(
     monkeypatch, valid_ua_file: Path
 ) -> None:
+    _patch_settings(
+        monkeypatch,
+        provider="linkedin",
+        policy=HttpPolicy(max_retries=2),
+    )
+
     class FakeResponse:
         def __init__(self, status_code: int = 200):
             self.status_code = status_code
@@ -211,20 +255,20 @@ def test_web_page_non_retryable_raises_then_retries_via_exception(
                 raise requests.HTTPError(f"HTTP {self.status_code}")
 
     client = ScrapeClient(
+        provider="linkedin",
         web_url=HttpUrl("http://example.com/jobs"),
         header_provider=DummyHeaderProvider(ua_file=valid_ua_file),
     )
 
-    sleeps = []
-    monkeypatch.setattr("time.sleep", lambda s: sleeps.append(s))
-    # Deterministic backoff
+    sleeps: list[float] = []
+    monkeypatch.setattr("time.sleep", lambda s: sleeps.append(float(s)))
+
     monkeypatch.setattr(
         "joblytics.infrastructure.http.scraper.scrape_client.ScrapeClient._get_backoff_sleep",
         lambda self, attempt: 0.2,
         raising=True,
     )
 
-    # First: 404 (non-retryable) -> raise_for_status -> caught as RequestException -> sleep -> retry -> 200
     seq = [
         FakeResponse(status_code=404),
         FakeResponse(status_code=200),
@@ -249,6 +293,12 @@ def test_web_page_last_attempt_retryable_raises_scrape_client_error(
         ScrapeClientError,
     )
 
+    _patch_settings(
+        monkeypatch,
+        provider="linkedin",
+        policy=HttpPolicy(max_retries=2),
+    )
+
     class FakeResponse:
         def __init__(self, status_code: int = 200, raise_http: bool = False):
             self.status_code = status_code
@@ -264,22 +314,19 @@ def test_web_page_last_attempt_retryable_raises_scrape_client_error(
                 raise requests.HTTPError(f"HTTP {self.status_code}")
 
     client = ScrapeClient(
+        provider="linkedin",
         web_url=HttpUrl("http://example.com/jobs"),
         header_provider=DummyHeaderProvider(ua_file=valid_ua_file),
-        max_retries=2,  # make it short and explicit
     )
 
-    # No real sleeping
     monkeypatch.setattr("time.sleep", lambda s: None)
-    # Deterministic backoff for attempt 1
+
     monkeypatch.setattr(
         "joblytics.infrastructure.http.scraper.scrape_client.ScrapeClient._get_backoff_sleep",
         lambda self, attempt: 0.1,
         raising=True,
     )
 
-    # Attempt 1: 500 (retryable) -> sleep & retry
-    # Attempt 2 (last): 500 (retryable) -> raise_for_status -> caught -> ScrapeClientError
     seq = [
         FakeResponse(status_code=500, raise_http=False),
         FakeResponse(status_code=500, raise_http=True),
@@ -305,9 +352,6 @@ def empty_or_invalid_file(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def ua_file_invalid(tmp_path: Path) -> Path:
-    """
-    UA file that should produce an empty 'uas' list after filtering -> triggers ValueError at ~ line 57.
-    """
     p = tmp_path / "invalid_uas.txt"
     lines = [
         "# only comments\n",
@@ -342,35 +386,24 @@ def test_invalid_after_filtering_triggers_valueerror_header_provider(
 @pytest.mark.parametrize(
     "url, expected_referer",
     [
-        # Covers the '/seeMoreJobPostings/' sub-branch in header() -> lines 66-70ish
         (
             "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/somepath",
             "https://www.linkedin.com/jobs/view/",
         ),
-        # Covers the '/jobPosting/' sub-branch in header() -> lines 70-73ish
         (
             "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/123456",
             "https://www.linkedin.com/jobs/search",
         ),
-        # Covers the 'linkedin' outer if, but no inner match => no Referer set -> lines 63-85 overall block
-        (
-            "https://www.linkedin.com/feed/",
-            None,
-        ),
-        # Covers the else path when 'linkedin' not in URL -> skips block entirely
-        (
-            "https://example.com/",
-            None,
-        ),
+        ("https://www.linkedin.com/feed/", None),
+        ("https://example.com/", None),
     ],
 )
 def test_header_linkedin_referer_logic_header_provider(
     url: str, expected_referer: str | None, valid_ua_file: Path
 ) -> None:
     rhp = RandomHeaderProvider(ua_file=valid_ua_file)
-    h = rhp.header(HttpUrl(url))  # let Pydantic validate/coerce
+    h = rhp.header(HttpUrl(url))
 
-    # Standard keys always present
     for k in [
         "User-Agent",
         "Accept",

@@ -3,6 +3,10 @@ from pathlib import Path
 from typing import Any
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from joblytics.infrastructure.http.policies.http_policy import (
+    HttpPolicy,
+    PolicyResolver,
+)
 
 
 class LogLevel(str, Enum):
@@ -29,12 +33,12 @@ class Settings(BaseSettings):
         "It is designed with Clean Architecture principles and built using technologies "
         "such as: DBT, Docker, FastAPI, ensuring maintainability, scalability, and modularity."
     )
-    CONTACT: dict = {
+    CONTACT: dict[str, str] = {
         "name": "Samir Hinojosa",
         "url": "https://github.com/samirhinojosa",
         "email": "samirhinojosa@gmail.com",
     }
-    LICENSE_INFO: dict = {
+    LICENSE_INFO: dict[str, str] = {
         "name": "Apache 2.0",
         "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
     }
@@ -49,13 +53,6 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "pwd"
     POSTGRES_DB: str = "db"
 
-    # General API information
-    # OPENAPI_URL: str = "/openapi.json"
-
-    # ## current API version
-    # API_VERSION: str = "/api/v1"
-    # FAST_API_VERSION: str = "0.0.1"
-
     ## User agents file
     UA_FILE_PATH: Path = (
         PROJECT_ROOT / "infrastructure" / "http" / "assets" / "user_agents.txt"
@@ -65,20 +62,48 @@ class Settings(BaseSettings):
     LOG_LEVEL: LogLevel = LogLevel.INFO
     LOG_FILE: Path = Path("/var/log/joblytics/app.log")
 
-    # # Defining Logging file path
-    # @model_validator(mode="after")
-    # def override_log_file_for_debug(self) -> Self:
-    #     """
-    #     - If DEBUG -> use local log: logs/joblytics.log
-    #     - If not DEBUT -> default /var/log/joblytics/app.log
-    #     """
-    #     if self.LOG_LEVEL == LogLevel.DEBUG:
-    #         self.LOG_FILE = Path("logs/joblytics.log")
-    #     return self
+    # HTTP POLICIES : reliability / Scraping settings / Compliance
+    HTTP_POLICIES: PolicyResolver = PolicyResolver(
+        default=HttpPolicy(
+            rate_limit_per_second=0.0,
+            jitter_seconds_min=0.0,
+            jitter_seconds_max=0.0,
+            timeout_connect=5.0,
+            timeout_read=15.0,
+            max_retries=3,
+            backoff_factor=2.0,
+            backoff_cap=30.0,
+        ),
+        per_provider={
+            "linkedin": HttpPolicy(
+                rate_limit_per_second=0.5,
+                jitter_seconds_min=0.2,
+                jitter_seconds_max=0.8,
+                timeout_connect=5.0,
+                timeout_read=15.0,
+                max_retries=3,
+                backoff_factor=2.0,
+                backoff_cap=30.0,
+            ),
+            "indeed": HttpPolicy(
+                rate_limit_per_second=0.5,
+                jitter_seconds_min=0.05,
+                jitter_seconds_max=0.25,
+                timeout_connect=3.0,
+                timeout_read=10.0,
+                max_retries=2,
+                backoff_factor=1.5,
+                backoff_cap=20.0,
+            ),
+        },
+    )
 
     def resolve_log_file(self) -> Path:
         p = self.LOG_FILE
         return p if p.is_absolute() else (self.PROJECT_ROOT / p).resolve()
+
+    def http_policy(self, provider: str) -> HttpPolicy:
+        return self.HTTP_POLICIES.for_provider(provider)
 
 
 class RuntimeSettings(Settings):

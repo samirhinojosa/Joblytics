@@ -12,19 +12,19 @@ class NoOffersFoundError(DomainError):
         location: str,
         distance: int,
         time_posted: str,
-        remote_mode: str,
+        work_modality: str,
         url: HttpUrl | None = None,
     ):
         self.title = title
         self.location = location
         self.distance = distance
         self.time_posted = time_posted
-        self.remote_mode = remote_mode
+        self.work_modality = work_modality
         self.url = url
 
         super().__init__(
             f"No offers were found (0 results) for "
             f'title="{title}", location="{location}", distance={distance}, '
-            f"time posted={time_posted}, remote mode={remote_mode}"
+            f"time posted={time_posted}, remote mode={work_modality}"
             + (f". URL: {url}" if url else "")
         )

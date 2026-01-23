@@ -4,13 +4,14 @@ import requests
 import logging
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, HttpUrl
 from typing import Annotated, Optional, cast
+from joblytics.core.config.settings import get_settings
 from joblytics.infrastructure.http.header_provider import RandomHeaderProvider
 from joblytics.infrastructure.http.scraper.scrape_client_error import (
     ScrapeClientError,
 )
+from joblytics.infrastructure.http.policies.http_policy import HttpPolicy
 
-
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("joblytics")
 
 RETRY_STATUSES = {429, 500, 502, 503, 504, 999}
 
@@ -18,12 +19,12 @@ RETRY_STATUSES = {429, 500, 502, 503, 504, 999}
 class ScrapeClient(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    # Define the HTTP policies to use based on the provider
+    provider: str
+    _policy: HttpPolicy = PrivateAttr()
+
     # Setup parameters
     web_url: Annotated[HttpUrl, Field(description="Job search URL")]
-    timeout: tuple[float, float] = (5.0, 15.0)  # (connect, read)
-    max_retries: int = 3
-    backoff_factor: float = 2.0  # 0.5, 1.0, 2.0
-    backoff_cap: float = 30.0  # maximum backoff time
 
     # Dependencies
     header_provider: RandomHeaderProvider = Field(default_factory=RandomHeaderProvider)
@@ -31,26 +32,56 @@ class ScrapeClient(BaseModel):
     # Internal state
     _session: requests.Session = PrivateAttr(default_factory=requests.Session)
 
+    def model_post_init(self, __context: object) -> None:
+        # Config (injected from Settings)
+        self._policy = get_settings().http_policy(self.provider)
+
+    @property
+    def policy(self) -> HttpPolicy:
+        return self._policy
+
     def _get_backoff_sleep(self, attempt: int) -> float:
         """
         Compute exponential backoff with jitter and cap
         """
-        base = self.backoff_factor * (2 ** (attempt - 1))
-        sleep = min(base, self.backoff_cap) + random.uniform(0, 0.5)
+        backoff_factor = self.policy.backoff_factor
+        backoff_cap = self.policy.backoff_cap
+
+        base = backoff_factor * (2 ** (attempt - 1))
+        sleep = min(base, backoff_cap) + random.uniform(0, 0.5)
         return cast(float, sleep)
+
+    def _throttle(self) -> None:
+        rps = float(self.policy.rate_limit_per_second or 0.0)
+        if rps <= 0:
+            return
+
+        base_delay = 1.0 / rps
+        jmin = float(self.policy.jitter_seconds_min or 0.0)
+        jmax = float(self.policy.jitter_seconds_max or 0.0)
+        jitter = random.uniform(jmin, jmax) if jmax > 0 else 0.0
+
+        sleep = base_delay + jitter
+        logger.debug(
+            f"Throttling: sleeping {sleep:.2f}s (rps={rps}, jitter=[{jmin},{jmax}])"
+        )
+        time.sleep(sleep)
 
     def web_page_search(self, web_url: Optional[HttpUrl] = None) -> requests.Response:
         url = web_url or self.web_url
         response: Optional[requests.Response] = None
+        timeout = self.policy.timeout()
+        max_retries = self.policy.max_retries
 
-        for attempt in range(1, self.max_retries + 1):
+        for attempt in range(1, max_retries + 1):
             try:
+                if random.random() < 0.5:  # 50% probability of execution
+                    self._throttle()
+
                 header = self.header_provider.header(url)
 
                 t0 = time.monotonic()
-                response = self._session.get(
-                    str(url), headers=header, timeout=self.timeout
-                )
+                response = self._session.get(str(url), headers=header, timeout=timeout)
                 elapsed = time.monotonic() - t0
 
                 logger.debug(
@@ -61,7 +92,7 @@ class ScrapeClient(BaseModel):
                     return response
 
                 if response.status_code in RETRY_STATUSES:
-                    if attempt < self.max_retries:
+                    if attempt < max_retries:
                         retry_after = response.headers.get("Retry-After")
                         if retry_after:
                             try:
@@ -73,7 +104,7 @@ class ScrapeClient(BaseModel):
 
                         logger.warning(
                             f"Retryable status {response.status_code} on {url} "
-                            + f"(attempt {attempt}/{self.max_retries}) Sleeping {sleep:.2f}s"
+                            + f"(attempt {attempt}/{max_retries}) Sleeping {sleep:.2f}s"
                         )
                         time.sleep(sleep)
                         continue
@@ -90,19 +121,19 @@ class ScrapeClient(BaseModel):
                     response.status_code if response is not None else None
                 )
 
-                if attempt < self.max_retries:
+                if attempt < max_retries:
                     sleep = self._get_backoff_sleep(attempt)
                     logger.warning(
-                        f"RequestException on {url} (attempt {attempt}/{self.max_retries}) "
+                        f"RequestException on {url} (attempt {attempt}/{self.policy.max_retries}) "
                         + f"{(e.__class__.__name__,)} (status code={status}). Sleeping {sleep:.2f}s"
                     )
                     time.sleep(sleep)
                     continue
                 logger.error(
-                    f"RequestException on {url} (attempt {attempt}/{self.max_retries}) "
+                    f"RequestException on {url} (attempt {attempt}/{self.policy.max_retries}) "
                     + f"{(e.__class__.__name__,)} (status code={status}). No more retries."
                 )
-                raise ScrapeClientError(url, self.max_retries, attempt, status)
+                raise ScrapeClientError(url, self.policy.max_retries, attempt, status)
 
         status = response.status_code if response is not None else None
-        raise ScrapeClientError(url, self.max_retries, attempt, status)
+        raise ScrapeClientError(url, self.policy.max_retries, attempt, status)

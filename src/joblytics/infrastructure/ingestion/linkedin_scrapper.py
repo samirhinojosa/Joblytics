@@ -18,7 +18,7 @@ from joblytics.infrastructure.http.scraper.scrape_client_error import (
 )
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("joblytics")
 
 
 class TimePosted(str, Enum):
@@ -28,7 +28,7 @@ class TimePosted(str, Enum):
     MONTH = "month"
 
 
-TIMEPOSTED_TO_LINKEDIN = {
+TIME_POSTED_TO_LINKEDIN = {
     TimePosted.ALL: "",
     TimePosted.DAY: "r86400",
     TimePosted.WEEK: "r604800",
@@ -36,11 +36,19 @@ TIMEPOSTED_TO_LINKEDIN = {
 }
 
 
-class RemoteMode(str, Enum):
-    ALL = ""
-    ONSITE = "1"
-    HYBRID = "2"
-    REMOTE = "3"
+class WorkModality(str, Enum):
+    ALL = "all"
+    ONSITE = "onsite"
+    HYBRID = "hybrid"
+    REMOTE = "remote"
+
+
+WORK_MODALITY_TO_LINKEDIN = {
+    WorkModality.ALL: "",
+    WorkModality.ONSITE: "1",
+    WorkModality.HYBRID: "2",
+    WorkModality.REMOTE: "3",
+}
 
 
 class LinkedInScrapper(BaseModel):
@@ -50,7 +58,8 @@ class LinkedInScrapper(BaseModel):
     location: Annotated[str, Field(min_length=1, description="Job location")]
     distance: Annotated[int, Field(ge=0, le=100, description="Search radius")] = 10
     time_posted: TimePosted = TimePosted.ALL
-    remote_mode: RemoteMode = RemoteMode.ALL
+    work_modality: WorkModality = WorkModality.ALL
+    provider: str = "linkedin"
 
     # Config global
     PAGE_SIZE: int = 10
@@ -69,7 +78,7 @@ class LinkedInScrapper(BaseModel):
         geo_id: Optional[int] = None,
         offset: Optional[int] = None,
         time_posted: Optional[TimePosted] = None,
-        remote_mode: Optional[RemoteMode] = None,
+        work_modality: Optional[WorkModality] = None,
     ) -> HttpUrl:
         """Generate the LinkedIn job search URL using the model values (and allowing for occasional overrides)
 
@@ -80,7 +89,7 @@ class LinkedInScrapper(BaseModel):
             geo_id (Optional[int]): LinkedIn geoId to restrict the search area.
             offset (Optional[int]): Pagination offset for job listings.
             time_posted (Optional[TimePosted]): Filter by time posted. If None, uses the model value.
-            remote_mode (Optional[RemoteMode]): Onsite / hybrid / remote filter. If None, uses the model value.
+            work_modality (Optional[WorkModality]): Onsite / hybrid / remote filter. If None, uses the model value.
 
         Returns:
             HttpUrl: Fully built LinkedIn job search URL.
@@ -91,14 +100,13 @@ class LinkedInScrapper(BaseModel):
             "distance": (distance if distance is not None else self.distance),
         }
 
-        # tp = (time_posted or self.time_posted).value
-        # time_posted=TIMEPOSTED_TO_LINKEDIN[time_posted],
         tp_enum = time_posted or self.time_posted
-        tp = TIMEPOSTED_TO_LINKEDIN[tp_enum]
+        tp = TIME_POSTED_TO_LINKEDIN[tp_enum]
         if tp:
             params["f_TPR"] = tp
 
-        rm = (remote_mode or self.remote_mode).value
+        rm_enum = work_modality or self.work_modality
+        rm = WORK_MODALITY_TO_LINKEDIN[rm_enum]
         if rm:
             params["f_WT"] = rm
 
@@ -166,11 +174,11 @@ class LinkedInScrapper(BaseModel):
         try:
             logger.info(
                 f"[Summary] Starting LinkedIn jobs listings fetch: [title='{self.title}', location='{self.location}', "
-                f"time_posted='{self.time_posted.name.lower()}']..."
+                f"time_posted='{self.time_posted.name.lower()}', work_modality='{self.work_modality.name.lower()}']"
             )
 
             url = self.generate_jobs_url()
-            scrape_client = ScrapeClient(web_url=url)
+            scrape_client = ScrapeClient(provider=self.provider, web_url=url)
             response = scrape_client.web_page_search()
             number_of_offers = self.number_of_offers(response)
             geo_id = self._extract_geo_id(response)
@@ -189,7 +197,7 @@ class LinkedInScrapper(BaseModel):
                     location=self.location,
                     distance=self.distance,
                     time_posted=self.time_posted.name.lower(),
-                    remote_mode=self.remote_mode.name.lower(),
+                    work_modality=self.work_modality.name.lower(),
                     url=self.generate_jobs_url(),
                 )
 
@@ -257,7 +265,7 @@ class LinkedInScrapper(BaseModel):
             logger.info(
                 f"[Summary] Completed LinkedIn job summary fetch: {len(jobs_summary)}/{number_of_offers} "
                 f"listings retrieved [title='{self.title}', location='{self.location}', "
-                f"time_posted='{self.time_posted.name.lower()}']."
+                f"time_posted='{self.time_posted.name.lower()}', work_modality='{self.work_modality.name.lower()}']."
             )
             return jobs_summary
 
@@ -293,7 +301,8 @@ class LinkedInScrapper(BaseModel):
 
         def _fetch_offers_details(_jobs: list) -> None:
             scrape_client = ScrapeClient(
-                web_url=HttpUrl(f"{BASE_URL}{int(_jobs[0]['id'])}")
+                provider=self.provider,
+                web_url=HttpUrl(f"{BASE_URL}{int(_jobs[0]['id'])}"),
             )
             nonlocal done
 
