@@ -81,9 +81,9 @@ joblytics "Data Engineer" Paris day onsite
 | Value   | Meaning                       |
 | ------- | ----------------------------- |
 | `all`   | All available offers          |
-| `onsite`   | Published in the last 24h     |
-| `hybrid`  | Published in the last 7 days  |
-| `remote` | Published in the last 30 days |
+| `onsite`   | On-site positions (physical presence)     |
+| `hybrid`  | Hybrid positions (office + remote mix)  |
+| `remote` | Fully remote positions |
 
 ℹ️ The CLI values are mapped internally to LinkedIn technical filters (1, 2, etc.), but remain human-readable at CLI level.
 

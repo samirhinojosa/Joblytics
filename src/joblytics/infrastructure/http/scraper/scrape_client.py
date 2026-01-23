@@ -17,11 +17,26 @@ RETRY_STATUSES = {429, 500, 502, 503, 504, 999}
 
 
 class ScrapeClient(BaseModel):
+    """
+    HTTP scraping client with retry, backoff, throttling and provider-based policy control.
+
+    This client centralizes request execution logic including:
+    - Provider-specific HTTP policies
+    - Retry strategy with exponential backoff
+    - Optional probabilistic throttling
+    - Header randomization
+    - Session reuse
+    - Error normalization
+
+    """
+
     model_config = ConfigDict(extra="forbid")
 
     # Define the HTTP policies to use based on the provider
     provider: str
     _policy: HttpPolicy = PrivateAttr()
+    # Throttle control
+    enable_throttle: bool = True
 
     # Setup parameters
     web_url: Annotated[HttpUrl, Field(description="Job search URL")]
@@ -33,14 +48,24 @@ class ScrapeClient(BaseModel):
     _session: requests.Session = PrivateAttr(default_factory=requests.Session)
 
     def model_post_init(self, __context: object) -> None:
-        # Config (injected from Settings)
+        """
+        Inject provider-specific HTTP policy from application settings.
+        """
         self._policy = get_settings().http_policy(self.provider)
 
     @property
     def policy(self) -> HttpPolicy:
+        """
+        Returns the resolved HTTP policy for the configured provider.
+        """
         return self._policy
 
     def _get_backoff_sleep(self, attempt: int) -> float:
+        """
+        Compute exponential backoff delay with jitter and maximum cap.
+
+        Used for retry scheduling after transient HTTP or network errors.
+        """
         """
         Compute exponential backoff with jitter and cap
         """
@@ -52,6 +77,12 @@ class ScrapeClient(BaseModel):
         return cast(float, sleep)
 
     def _throttle(self) -> None:
+        """
+        Apply rate limiting based on provider policy.
+
+        Introduces a controlled delay using rate-per-second and jitter
+        to reduce detection risk and avoid provider-side blocking.
+        """
         rps = float(self.policy.rate_limit_per_second or 0.0)
         if rps <= 0:
             return
@@ -68,6 +99,25 @@ class ScrapeClient(BaseModel):
         time.sleep(sleep)
 
     def web_page_search(self, web_url: Optional[HttpUrl] = None) -> requests.Response:
+        """
+        Execute a GET request with retry, backoff, throttling and error handling.
+
+        Features:
+        - Optional probabilistic throttling
+        - Provider-based timeout configuration
+        - Automatic retries on transient errors
+        - Retry-After header support
+        - Unified exception handling
+
+        Args:
+            web_url (HttpUrl): Optional override URL. Defaults to instance web_url.
+
+        Returns:
+            requests.Response: Successful HTTP response.
+
+        Raises:
+            ScrapeClientError: When all retry attempts fail.
+        """
         url = web_url or self.web_url
         response: Optional[requests.Response] = None
         timeout = self.policy.timeout()
@@ -75,7 +125,9 @@ class ScrapeClient(BaseModel):
 
         for attempt in range(1, max_retries + 1):
             try:
-                if random.random() < 0.5:  # 50% probability of execution
+                if (
+                    self.enable_throttle and random.random() < 0.5
+                ):  # If enable -> 50% probability of execution
                     self._throttle()
 
                 header = self.header_provider.header(url)

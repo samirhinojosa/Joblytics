@@ -178,7 +178,14 @@ class LinkedInScrapper(BaseModel):
             )
 
             url = self.generate_jobs_url()
-            scrape_client = ScrapeClient(provider=self.provider, web_url=url)
+
+            # NOTE:
+            # In this execution path we are not using parallel threads and requests are performed
+            # sequentially while iterating over job offer lists. Therefore, throttling can be safely
+            # disabled here to avoid unnecessary artificial delays and improve throughput.
+            scrape_client = ScrapeClient(
+                provider=self.provider, web_url=url, enable_throttle=False
+            )
             response = scrape_client.web_page_search()
             number_of_offers = self.number_of_offers(response)
             geo_id = self._extract_geo_id(response)
@@ -289,6 +296,7 @@ class LinkedInScrapper(BaseModel):
         MAX_WORKERS = 5
         BASE_URL = "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/"
 
+        # NOTE:
         # Split the list into chunks of 5 dictionaries each using zip_longest
         # (fills missing values with None and filters them out)
         jobs_lists = [
