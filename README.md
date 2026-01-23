@@ -42,7 +42,7 @@ Example:<br>
 joblytics --verbose linkedin-scrape "Data Engineer" Paris
 joblytics -v linkedin-scrape "Data Engineer" Paris
 ```
-or
+Default (as follows): `INFO` level logging
 ```bash
 joblytics linkedin-scrape "Data Engineer" Paris
 ```
@@ -68,6 +68,22 @@ joblytics "Data Engineer" Paris --time-posted day
 | `month` | Published in the last 30 days |
 
 ℹ️ The CLI values are mapped internally to LinkedIn technical filters (r86400, r604800, etc.), but remain human-readable at CLI level.
+
+### 📋 Output rendering (CLI)
+By default, __no table is displayed in the console__.
+
+#### Show summary table in console
+
+```bash
+joblytics linkedin-scrape "Data Engineer" Grenoble --show-table
+```
+
+#### Default behavior (no table)
+```bash
+joblytics linkedin-scrape "Data Engineer" Grenoble
+```
+ℹ️ The --show-table flag enables rendering of a formatted summary table in the console output.<br>
+Without this flag, the CLI runs in silent/data mode, suitable for pipelines, cron jobs, and integrations.
 
 ## 🚀 Installation
 
