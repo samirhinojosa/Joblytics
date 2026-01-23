@@ -7,6 +7,8 @@ from joblytics.infrastructure.ingestion.linkedin_scrapper import (
     LinkedInScrapper,
     TimePosted,
 )
+from joblytics.domain.exceptions.errors import NoOffersFoundError
+
 
 app = typer.Typer()
 
@@ -37,16 +39,52 @@ def main(
         "-v",
         help="Activa logs en nivel DEBUG.",
     ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="No realiza llamadas de red (modo seguro)."
+    ),
+    respect_robots: bool = typer.Option(
+        False,
+        "--respect-robots/--no-respect-robots",
+        help="Respeta robots.txt (best-effort).",
+    ),
+    rate: float = typer.Option(
+        0.2,
+        "--rate",
+        help="Requests per second. Example: 0.2 = 1 request every 5 seconds.",
+    ),
+    max_retries: int = typer.Option(
+        3,
+        "--max-retries",
+        help="Max retry attempts for HTTP calls.",
+    ),
+    timeout_connect: float = typer.Option(
+        5.0,
+        "--timeout-connect",
+        help="HTTP connect timeout (seconds).",
+    ),
+    timeout_read: float = typer.Option(
+        15.0,
+        "--timeout-read",
+        help="HTTP read timeout (seconds).",
+    ),
 ) -> None:
     """
     CLI of project utilities.
     """
-    settings = get_settings()
+    get_settings.cache_clear()
+    settings = get_settings(
+        DRY_RUN=dry_run,
+        RESPECT_ROBOTS=respect_robots,
+        RATE_LIMIT_PER_SECOND=rate,
+        MAX_RETRIES=max_retries,
+        REQUEST_TIMEOUT_CONNECT=timeout_connect,
+        REQUEST_TIMEOUT_READ=timeout_read,
+    )
     setup_logging(settings, verbose=verbose)
 
     import logging
 
-    logging.getLogger(__name__).debug("CLI initialized (verbose=%s)", verbose)
+    logging.getLogger("joblytics").debug("CLI initialized (verbose=%s)", verbose)
 
 
 @app.command("linkedin-scrape")
@@ -89,6 +127,10 @@ def linkedIn_scrapper(
         print(table)
 
         logger.info("LinkedIn scrape finished successfully")
+    except NoOffersFoundError as e:
+        logger.warning(str(e))
+        typer.echo("No offers found. Exiting.")
+        raise typer.Exit(code=0)
     except Exception as e:
         logger.exception("Error running linkedin-scrape")
         typer.secho(

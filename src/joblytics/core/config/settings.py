@@ -57,6 +57,9 @@ class Settings(BaseSettings):
     # FAST_API_VERSION: str = "0.0.1"
 
     ## User agents file
+    # UA_FILE_PATH: Path = Path(
+    #     "src/joblytics/infrastructure/http/assets/user_agents.txt"
+    # )
     UA_FILE_PATH: Path = (
         PROJECT_ROOT / "infrastructure" / "http" / "assets" / "user_agents.txt"
     )
@@ -65,20 +68,31 @@ class Settings(BaseSettings):
     LOG_LEVEL: LogLevel = LogLevel.INFO
     LOG_FILE: Path = Path("/var/log/joblytics/app.log")
 
-    # # Defining Logging file path
-    # @model_validator(mode="after")
-    # def override_log_file_for_debug(self) -> Self:
-    #     """
-    #     - If DEBUG -> use local log: logs/joblytics.log
-    #     - If not DEBUT -> default /var/log/joblytics/app.log
-    #     """
-    #     if self.LOG_LEVEL == LogLevel.DEBUG:
-    #         self.LOG_FILE = Path("logs/joblytics.log")
-    #     return self
+    # Compliance / responsible scraping (B3)
+    RATE_LIMIT_PER_SECOND: float = 0.2  # 1 req every 5 seconds
+    JITTER_SECONDS_MIN: float = 0.1
+    JITTER_SECONDS_MAX: float = 0.4
+
+    RESPECT_ROBOTS: bool = False
+    DRY_RUN: bool = False
+
+    # HTTP / reliability
+    REQUEST_TIMEOUT_CONNECT: float = 5.0
+    REQUEST_TIMEOUT_READ: float = 15.0
+    MAX_RETRIES: int = 3
+    BACKOFF_FACTOR: float = 2.0
+    BACKOFF_CAP: float = 30.0
+
+    def resolve_ua_file_path(self) -> Path:
+        p = self.UA_FILE_PATH
+        return p if p.is_absolute() else (self.PROJECT_ROOT / p).resolve()
 
     def resolve_log_file(self) -> Path:
         p = self.LOG_FILE
         return p if p.is_absolute() else (self.PROJECT_ROOT / p).resolve()
+
+    def resolve_timeout(self) -> tuple[float, float]:
+        return (self.REQUEST_TIMEOUT_CONNECT, self.REQUEST_TIMEOUT_READ)
 
 
 class RuntimeSettings(Settings):

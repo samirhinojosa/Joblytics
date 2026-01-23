@@ -16,7 +16,7 @@ from joblytics.domain.exceptions.errors import NoOffersFoundError
 from joblytics.infrastructure.http.scraper.scrape_client_error import (
     ScrapeClientError,
 )
-
+from joblytics.core.config.settings import Settings, get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +54,8 @@ class LinkedInScrapper(BaseModel):
 
     # Config global
     PAGE_SIZE: int = 10
+
+    settings: Settings = Field(default_factory=get_settings)
 
     # Normalizes input strings
     @field_validator("title", "location")
@@ -170,7 +172,7 @@ class LinkedInScrapper(BaseModel):
             )
 
             url = self.generate_jobs_url()
-            scrape_client = ScrapeClient(web_url=url)
+            scrape_client = ScrapeClient(web_url=url, settings=self.settings)
             response = scrape_client.web_page_search()
             number_of_offers = self.number_of_offers(response)
             geo_id = self._extract_geo_id(response)
@@ -293,7 +295,8 @@ class LinkedInScrapper(BaseModel):
 
         def _fetch_offers_details(_jobs: list) -> None:
             scrape_client = ScrapeClient(
-                web_url=HttpUrl(f"{BASE_URL}{int(_jobs[0]['id'])}")
+                web_url=HttpUrl(f"{BASE_URL}{int(_jobs[0]['id'])}"),
+                settings=self.settings,
             )
             nonlocal done
 
