@@ -53,10 +53,11 @@ joblytics linkedin-scrape "Data Engineer" Paris
 joblytics linkedin-scrape "Data Engineer" Grenoble
 ```
 
-### ⏱ Filter by publication date
-The `--time-posted` option allows filtering offers by publication recency.
+### ⏱ Filter by publication date (time_posted)
+The `time_posted` argument allows filtering offers by publication recency.<br>
+`day` is the value by default.
 ```bash
-joblytics "Data Engineer" Paris --time-posted day
+joblytics "Data Engineer" Paris week
 ```
 
 ### Supported values
@@ -68,6 +69,23 @@ joblytics "Data Engineer" Paris --time-posted day
 | `month` | Published in the last 30 days |
 
 ℹ️ The CLI values are mapped internally to LinkedIn technical filters (r86400, r604800, etc.), but remain human-readable at CLI level.
+
+### 🏢 Filter by work modality (work_modality)
+The `work_modality` argument allows filtering offers by publication recency.<br>
+`all` is the value by default.
+```bash
+joblytics "Data Engineer" Paris day onsite
+```
+
+### Supported values
+| Value   | Meaning                       |
+| ------- | ----------------------------- |
+| `all`   | All available offers          |
+| `onsite`   | Published in the last 24h     |
+| `hybrid`  | Published in the last 7 days  |
+| `remote` | Published in the last 30 days |
+
+ℹ️ The CLI values are mapped internally to LinkedIn technical filters (1, 2, etc.), but remain human-readable at CLI level.
 
 ### 📋 Output rendering (CLI)
 By default, __no table is displayed in the console__.
