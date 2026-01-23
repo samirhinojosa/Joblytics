@@ -1,32 +1,15 @@
 import typer
-from tabulate import tabulate
-from typing import Any, Mapping, Sequence
+
 from joblytics.core.config.settings import get_settings
 from joblytics.core.config.logger import setup_logging
 from joblytics.infrastructure.ingestion.linkedin_scrapper import (
     LinkedInScrapper,
     TimePosted,
 )
+from joblytics.domain.exceptions.errors import NoOffersFoundError
+from joblytics.core.utils.cli import render_table
 
 app = typer.Typer()
-
-
-def render_table(rows: Sequence[Mapping[str, Any]], *, drop: set[str]) -> Any:
-    """
-    Render table in CLI
-    """
-    if not rows:
-        return "No results."
-
-    cols = [k for k in rows[0].keys() if k not in drop]
-    table = [[r.get(c, "") for c in cols] for r in rows]
-
-    return tabulate(
-        table,
-        headers=cols,
-        tablefmt="github",
-        showindex=False,
-    )
 
 
 @app.callback()
@@ -46,7 +29,7 @@ def main(
 
     import logging
 
-    logging.getLogger(__name__).debug("CLI initialized (verbose=%s)", verbose)
+    logging.getLogger("joblytics").debug("CLI initialized (verbose=%s)", verbose)
 
 
 @app.command("linkedin-scrape")
@@ -57,13 +40,18 @@ def linkedIn_scrapper(
         TimePosted.DAY,
         help="LinkedIn publication date: all, day (24h), week (7d), month (30d).",
     ),
+    show_table: bool = typer.Option(
+        False,
+        "--show-table/--no-show-table",
+        help="Enable or disable console table rendering.",
+    ),
 ) -> None:
     """
     Extracts job postings from LinkedIn and displays a summary table in the console.
     """
     import logging
 
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger("joblytics")
 
     try:
         logger.info(
@@ -82,13 +70,28 @@ def linkedIn_scrapper(
             return
         logger.debug(f"Fetched job details: {len(jobs_details)}")
 
-        table = render_table(jobs_details, drop={"url", "description"})
+        if show_table:
+            logger.info("Rendering summary table in console output")
 
-        # df = pd.DataFrame(jobs_details)
-        # df = df.drop(columns=["url", "description"]).to_markdown(index=False)
-        print(table)
+            table = render_table(
+                jobs_details[:10],
+                drop={"id", "url", "description"},
+                col_limits={
+                    "title": 45,
+                    "company": 30,
+                    "location": 25,
+                    "contract_type": 15,
+                    "salary": 18,
+                },
+            )
+
+            print(table)
 
         logger.info("LinkedIn scrape finished successfully")
+    except NoOffersFoundError as e:
+        logger.warning(str(e))
+        typer.echo("No offers found. Exiting.")
+        raise typer.Exit(code=0)
     except Exception as e:
         logger.exception("Error running linkedin-scrape")
         typer.secho(
