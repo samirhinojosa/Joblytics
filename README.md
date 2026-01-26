@@ -187,22 +187,32 @@ To execute: `make Command`
 ## 📂 Project Structure (overview)
     .
     ├── src
-        ├── joblytics
-            ├── core                    # Central application configuration
-                ├── config              # (settings, environment, logging)
-                ├── utils
-            ├── domain                  # Business rules, schemas, invariants
-                ├── exceptions          # Domain-level exceptions and business-rule violations
-                ├── schemas             # Pydantic models (DTOs) for validation and serialization
-            ├── infrastructure          # Scraping, HTTP clients, persistence, APIs
-                ├── http                # HTTP client, scraper utilities, and header providers
-                ├── repositories        # Concrete implementations of data access (DB, cache, etc.)
-                ├── services            # Integrations with external services/APIs (e.g., ML, third-party APIs)
-            ├── pipelines               # Scrapers and data ingestion workflows
-                ├── linkedin
-            ├── cli.py                  # Typer-based CLI entrypoint for scraping workflows (start here)
+    │   ├── joblytics
+    │   │   ├── core                    # Central application configuration
+    │   │   │   ├── config              # Settings, environment, logging
+    │   │   │   └── utils               # Cross-cutting helpers
+    │   │   │
+    │   │   ├── domain                  # Business rules, domain models, invariants
+    │   │   │   ├── entities            # Domain entities (business models and invariants)
+    │   │   │   └── exceptions          # Domain-level exceptions and business-rule violations
+    │   │   │
+    │   │   ├── infrastructure          # Technical implementations (IO, network, persistence)
+    │   │   │   ├── http                # HTTP clients and scraping infrastructure
+    │   │   │   │   └── scraping
+    │   │   │   └── repositories        # Concrete implementations of data access (DB, cache, etc.)
+    │   │   │
+    │   │   ├── pipelines               # Provider-specific data pipelines (scraping + parsing + normalization)
+    │   │   │   ├── base.py
+    │   │   │   └── linkedin
+    │   │   │
+    │   │   ├── services                # Integrations with external services/APIs (e.g., ML, third-party APIs)
+    │   │   │
+    │   └── └── cli.py                  # Typer-based CLI entrypoint for scraping workflows (start here)
+    │
     ├── notebooks                       # Experimental development area (marimo notebooks)
+    │
     ├── tests                           # Unit and integration tests
+    │
     ├── docker-compose.yml              # Local PostgreSQL setup for development
     ├── Makefile                        # Developer automation: install, lint, test, coverage, quality gates
     ├── LICENSE

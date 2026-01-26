@@ -11,9 +11,9 @@ from bs4 import BeautifulSoup, Tag
 from itertools import zip_longest, chain
 from concurrent.futures import ThreadPoolExecutor
 import threading
-from joblytics.infrastructure.http.scraper.scrape_client import ScrapeClient
+from joblytics.infrastructure.http.scraping.http_client import ScrapeClient
 from joblytics.domain.exceptions.errors import NoOffersFoundError
-from joblytics.infrastructure.http.scraper.scrape_client_error import (
+from joblytics.infrastructure.http.scraping.errors import (
     ScrapeClientError,
 )
 

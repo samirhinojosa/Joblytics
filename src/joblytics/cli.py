@@ -2,7 +2,7 @@ import typer
 
 from joblytics.core.config.settings import get_settings
 from joblytics.core.config.logger import setup_logging
-from joblytics.infrastructure.ingestion.linkedin_scrapper import (
+from joblytics.pipelines.linkedin_scrapper import (
     LinkedInScrapper,
     TimePosted,
     WorkModality,

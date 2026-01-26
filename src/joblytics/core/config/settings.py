@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from joblytics.infrastructure.http.policies.http_policy import (
+from joblytics.infrastructure.http.scraping.policies.policy import (
     HttpPolicy,
     PolicyResolver,
 )
@@ -42,8 +42,11 @@ class Settings(BaseSettings):
         "name": "Apache 2.0",
         "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
     }
-    APP_DIR: Path = Path(__file__).resolve().parent.parent
-    PROJECT_ROOT: Path = APP_DIR.parent
+
+    # Paths
+    PACKAGE_ROOT: Path = Path(__file__).resolve().parents[2]  # src/joblytics
+    SRC_ROOT: Path = Path(__file__).resolve().parents[3]  # src
+    PROJECT_ROOT: Path = Path(__file__).resolve().parents[4]  # repo root
 
     # timezone
     TZ: str = "UTC"
@@ -55,7 +58,12 @@ class Settings(BaseSettings):
 
     ## User agents file
     UA_FILE_PATH: Path = (
-        PROJECT_ROOT / "infrastructure" / "http" / "assets" / "user_agents.txt"
+        PACKAGE_ROOT
+        / "infrastructure"
+        / "http"
+        / "scraping"
+        / "assets"
+        / "user_agents.txt"
     )
 
     # Loggin information

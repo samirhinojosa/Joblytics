@@ -5,11 +5,11 @@ import logging
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, HttpUrl
 from typing import Annotated, Optional, cast
 from joblytics.core.config.settings import get_settings
-from joblytics.infrastructure.http.header_provider import RandomHeaderProvider
-from joblytics.infrastructure.http.scraper.scrape_client_error import (
+from joblytics.infrastructure.http.scraping.headers import RandomHeaderProvider
+from joblytics.infrastructure.http.scraping.errors import (
     ScrapeClientError,
 )
-from joblytics.infrastructure.http.policies.http_policy import HttpPolicy
+from joblytics.infrastructure.http.scraping.policies.policy import HttpPolicy
 
 logger = logging.getLogger("joblytics")
 
