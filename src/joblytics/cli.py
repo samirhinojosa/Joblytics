@@ -33,7 +33,7 @@ def main(
     logging.getLogger("joblytics").debug("CLI initialized (verbose=%s)", verbose)
 
 
-@app.command("linkedin-scrape")
+@app.command("linkedin")
 def linkedIn_scrapper(
     title: str,
     location: str,

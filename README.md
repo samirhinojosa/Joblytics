@@ -39,18 +39,18 @@ These options apply to __all commands__.
 Example:<br>
 ℹ️ When `--verbose` or `-v` is enabled, the application initializes logging with `DEBUG` level instead of `INFO`.
 ```bash
-joblytics --verbose linkedin-scrape "Data Engineer" Paris
-joblytics -v linkedin-scrape "Data Engineer" Paris
+joblytics --verbose linkedin "Data Engineer" Paris
+joblytics -v linkedin "Data Engineer" Paris
 ```
 Default (as follows): `INFO` level logging
 ```bash
-joblytics linkedin-scrape "Data Engineer" Paris
+joblytics linkedin "Data Engineer" Paris
 ```
 
 ### ▶️ Scraping LinkedIn Jobs
 
 ```bash
-joblytics linkedin-scrape "Data Engineer" Grenoble
+joblytics linkedin "Data Engineer" Grenoble
 ```
 
 ### ⏱ Filter by publication date (time_posted)
@@ -93,12 +93,12 @@ By default, __no table is displayed in the console__.
 #### Show summary table in console
 
 ```bash
-joblytics linkedin-scrape "Data Engineer" Grenoble --show-table
+joblytics linkedin "Data Engineer" Grenoble --show-table
 ```
 
 #### Default behavior (no table)
 ```bash
-joblytics linkedin-scrape "Data Engineer" Grenoble
+joblytics linkedin "Data Engineer" Grenoble
 ```
 ℹ️ The --show-table flag enables rendering of a formatted summary table in the console output.<br>
 Without this flag, the CLI runs in silent/data mode, suitable for pipelines, cron jobs, and integrations.
