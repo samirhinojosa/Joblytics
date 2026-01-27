@@ -92,7 +92,7 @@ def test_web_page(monkeypatch, valid_ua_file: Path) -> None:
 
 
 def test_get_backoff_sleep_basic(monkeypatch, valid_ua_file: Path) -> None:
-    # policy determinista: backoff_factor=1.0; cap alto
+    # deterministic politics: backoff_factor=1.0; cap alto
     _patch_settings(
         monkeypatch,
         provider="linkedin",

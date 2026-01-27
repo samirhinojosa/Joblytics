@@ -19,7 +19,7 @@ def main(
         False,
         "--verbose",
         "-v",
-        help="Activa logs en nivel DEBUG.",
+        help="Enable logs in DEBUG level.",
     ),
 ) -> None:
     """

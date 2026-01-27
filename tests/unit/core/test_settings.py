@@ -22,14 +22,6 @@ def test_resolve_log_file(tmp_path: Path) -> None:
     assert str(resolved).startswith(str(tmp_path))
 
 
-# def test_override_log_file_for_debug(tmp_path: Path) -> None:
-#     settings = get_settings(
-#         read_env=False, PROJECT_ROOT=tmp_path, LOG_LEVEL=LogLevel.DEBUG
-#     )
-#     p = settings.resolve_log_file()
-#     assert "logs/joblytics.log" in str(p)
-
-
 def test_compute_log_file_verbose(tmp_path: Path):
     settings = get_settings(
         read_env=False, PROJECT_ROOT=tmp_path, LOG_LEVEL=LogLevel.INFO
