@@ -240,20 +240,28 @@ class LinkedInScrapper(BaseModel):
 
                     job_id = raw_urn.split(":")[-1]
 
-                    title = job.select_one("h3") or job.select_one(
+                    title_node = job.select_one("h3") or job.select_one(
                         ".base-search-card__title"
                     )
-                    title = title.get_text(strip=True)
 
-                    company = job.select_one("h4") or job.select_one(
+                    company_node = job.select_one("h4") or job.select_one(
                         ".base-search-card__subtitle"
                     )
-                    company = company.get_text(strip=True)
 
-                    location = job.select_one(".job-search-card__location")
-                    location = location.get_text(strip=True)
+                    location_node = job.select_one(".job-search-card__location")
 
                     url_node = job.select_one("a.base-card__full-link")
+
+                    if not all([title_node, company_node, location_node, url_node]):
+                        continue
+
+                    title = title_node.get_text(strip=True)
+                    company = company_node.get_text(strip=True)
+                    location = location_node.get_text(strip=True)
+
+                    href = url_node.get("href")
+                    if not href:
+                        continue
                     clean_url = str(url_node.get("href", "")).split("?")[0]
 
                     modality_node = job.select_one(
@@ -267,9 +275,6 @@ class LinkedInScrapper(BaseModel):
                             raw_work_modality = "Remote"
                         elif "hybrid" in modality_text:
                             raw_work_modality = "Hybrid"
-
-                    if not (title and company and url_node):
-                        continue
 
                     try:
                         offer = RawJobOffer(
