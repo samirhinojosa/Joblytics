@@ -73,13 +73,13 @@ class LinkedInScrapper(BaseModel):
 
     def generate_jobs_url(
         self,
-        title: Optional[str] = None,
-        location: Optional[str] = None,
-        distance: Optional[int] = None,
-        geo_id: Optional[int] = None,
-        offset: Optional[int] = None,
-        time_posted: Optional[TimePosted] = None,
-        work_modality: Optional[WorkModality] = None,
+        title: str | None = None,
+        location: str | None = None,
+        distance: int | None = None,
+        geo_id: int | None = None,
+        offset: int | None = None,
+        time_posted: TimePosted | None = None,
+        work_modality: WorkModality | None = None,
     ) -> HttpUrl:
         """Generate the LinkedIn job search URL using the model values (and allowing for occasional overrides)
 
@@ -225,7 +225,6 @@ class LinkedInScrapper(BaseModel):
                 self._polite_delay(base=0.45, jitter=0.4)
                 response = scrape_client.web_page_search(web_url=_url)
                 soup = BeautifulSoup(response.text, "html.parser")
-                # soup_jobs = soup.find_all("li")
 
                 soup_jobs = [li for li in soup.find_all("li") if isinstance(li, Tag)]
 
@@ -422,9 +421,6 @@ class LinkedInScrapper(BaseModel):
 
         with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
             list(executor.map(_fetch_chunk_details, jobs_chunks))
-
-        # Flatten the list of lists back into a single list using itertools.chain
-        # jobs = list(chain.from_iterable(jobs_lists))
 
         logger.info(
             f"[Details] Completed LinkedIn jobs details fetch: "

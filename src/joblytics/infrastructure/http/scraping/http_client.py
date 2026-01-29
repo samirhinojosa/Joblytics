@@ -119,7 +119,7 @@ class ScrapeClient(BaseModel):
             ScrapeClientError: When all retry attempts fail.
         """
         url = web_url or self.web_url
-        response: Optional[requests.Response] = None
+        response: requests.Response | None
         timeout = self.policy.timeout()
         max_retries = self.policy.max_retries
 
