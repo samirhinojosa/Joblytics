@@ -72,7 +72,10 @@ def linkedIn_scrapper(
         jobs_summary = scrapper.fetch_offers_summary() or []
         logger.debug(f"Fetched summary offers: {len(jobs_summary)}")
 
-        jobs_details = scrapper.fetch_offers_details(jobs_summary)
+        offers = scrapper.fetch_offers_details(jobs_summary)
+
+        jobs_details = [offer.model_dump() for offer in (offers or [])]
+
         if not jobs_details:
             logger.warning("No job details fetched.")
             return
@@ -83,13 +86,23 @@ def linkedIn_scrapper(
 
             table = render_table(
                 jobs_details[:10],
-                drop={"id", "url", "description"},
+                drop={
+                    "provider",
+                    "provider_job_id",
+                    "url",
+                    "description",
+                    "scraped_at",
+                    "raw_description_html",
+                    "search_title",
+                    "search_location",
+                    "search_work_modality",
+                    "search_time_posted",
+                    "raw",
+                },
                 col_limits={
                     "title": 45,
                     "company": 30,
                     "location": 25,
-                    "contract_type": 15,
-                    "salary": 18,
                 },
             )
 

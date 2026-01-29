@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, HttpUrl
 from typing import Annotated, Optional
 from urllib.parse import urlencode, quote_plus
 from bs4 import BeautifulSoup, Tag
-from itertools import zip_longest, chain
+from itertools import zip_longest
 from concurrent.futures import ThreadPoolExecutor
 import threading
 from joblytics.infrastructure.http.scraping.http_client import ScrapeClient
@@ -16,6 +16,7 @@ from joblytics.domain.exceptions.errors import NoOffersFoundError
 from joblytics.infrastructure.http.scraping.errors import (
     ScrapeClientError,
 )
+from joblytics.domain.entities.job_offer import RawJobOffer
 
 
 logger = logging.getLogger("joblytics")
@@ -167,7 +168,7 @@ class LinkedInScrapper(BaseModel):
 
     def fetch_offers_summary(
         self,
-    ) -> list[dict]:
+    ) -> list[RawJobOffer]:
         """
         Goes through the pagination of the LinkedIn jobs listings and return an offers basic list
         """
@@ -213,7 +214,7 @@ class LinkedInScrapper(BaseModel):
                     f"[Summary] Processing capped at 1,000 offers to avoid LinkedIn rate limits (total {number_of_offers})"
                 )
 
-            jobs_summary = []
+            jobs_summary: list[RawJobOffer] = []
             for i in range(0, MAX_START + 1, self.PAGE_SIZE):
                 if random.random() < 0.6:  # print with 60% probability
                     logger.info(
@@ -224,50 +225,71 @@ class LinkedInScrapper(BaseModel):
                 self._polite_delay(base=0.45, jitter=0.4)
                 response = scrape_client.web_page_search(web_url=_url)
                 soup = BeautifulSoup(response.text, "html.parser")
-                soup_jobs = soup.find_all("li")
+                # soup_jobs = soup.find_all("li")
+
+                soup_jobs = [li for li in soup.find_all("li") if isinstance(li, Tag)]
 
                 for job in soup_jobs:
-                    if not isinstance(job, Tag):
+                    card = job.select_one("[data-entity-urn]")
+                    if not card:
                         continue
 
-                    cards = job.select("div.base-card[data-entity-urn]")
-                    for card in cards:
-                        job_id_card = card.get("data-entity-urn")
-                        job_id = (
-                            job_id_card.split(":")[-1]
-                            if isinstance(job_id_card, str)
-                            else None
+                    raw_urn = card.get("data-entity-urn")
+                    if not isinstance(raw_urn, str):
+                        continue
+
+                    job_id = raw_urn.split(":")[-1]
+
+                    title = job.select_one("h3") or job.select_one(
+                        ".base-search-card__title"
+                    )
+                    title = title.get_text(strip=True)
+
+                    company = job.select_one("h4") or job.select_one(
+                        ".base-search-card__subtitle"
+                    )
+                    company = company.get_text(strip=True)
+
+                    location = job.select_one(".job-search-card__location")
+                    location = location.get_text(strip=True)
+
+                    url_node = job.select_one("a.base-card__full-link")
+                    clean_url = str(url_node.get("href", "")).split("?")[0]
+
+                    modality_node = job.select_one(
+                        ".base-search-card__metadata"
+                    ) or job.select_one(".job-search-card__metadata")
+                    raw_work_modality = "On-site"  # Default
+
+                    if modality_node:
+                        modality_text = modality_node.get_text(strip=True).lower()
+                        if "remote" in modality_text:
+                            raw_work_modality = "Remote"
+                        elif "hybrid" in modality_text:
+                            raw_work_modality = "Hybrid"
+
+                    if not (title and company and url_node):
+                        continue
+
+                    try:
+                        offer = RawJobOffer(
+                            provider=self.provider,
+                            provider_job_id=job_id,
+                            url=HttpUrl(clean_url),
+                            title=title,
+                            company=company,
+                            location=location,
+                            raw_work_modality=raw_work_modality,
+                            search_title=self.title,
+                            search_location=self.location,
+                            search_work_modality=self.work_modality.name.lower(),
+                            search_time_posted=self.time_posted.name.lower(),
                         )
-                        if not job_id:
-                            continue
-
-                        title_card = job.select_one("h3.base-search-card__title")
-                        title = title_card.get_text(strip=True) if title_card else None
-
-                        company_card = job.select_one("h4.base-search-card__subtitle")
-                        company = (
-                            company_card.get_text(strip=True) if company_card else None
+                        jobs_summary.append(offer)
+                    except Exception as e:
+                        logger.warning(
+                            f"Unexpected error while fetching offer {job_id}: {e}"
                         )
-
-                        location_card = job.select_one("span.job-search-card__location")
-                        location = (
-                            location_card.get_text(strip=True)
-                            if location_card
-                            else None
-                        )
-
-                        url_card = job.select_one("a.base-card__full-link")
-                        job_url = url_card.get("href") if url_card else None
-
-                        job_details = {
-                            "id": job_id,
-                            "title": title,
-                            "company": company,
-                            "location": location,
-                            "url": job_url,
-                        }
-
-                        jobs_summary.append(job_details)
 
             logger.info(
                 f"[Summary] Completed LinkedIn job summary fetch: {len(jobs_summary)}/{number_of_offers} "
@@ -284,7 +306,7 @@ class LinkedInScrapper(BaseModel):
             )
             return []
 
-    def fetch_offers_details(self, jobs: list[dict]) -> list[dict] | None:
+    def fetch_offers_details(self, jobs: list[RawJobOffer]) -> list[RawJobOffer] | None:
         if not jobs:
             return None
 
@@ -299,77 +321,108 @@ class LinkedInScrapper(BaseModel):
         # NOTE:
         # Split the list into chunks of 5 dictionaries each using zip_longest
         # (fills missing values with None and filters them out)
-        jobs_lists = [
-            list(filter(None, job)) for job in zip_longest(*[iter(jobs)] * MAX_WORKERS)
+        jobs_chunks = [
+            list(filter(None, chunk))
+            for chunk in zip_longest(*[iter(jobs)] * MAX_WORKERS)
         ]
+
+        enriched_jobs: list[RawJobOffer] = []
 
         # shared counter
         done = 0
         lock = threading.Lock()
 
-        def _fetch_offers_details(_jobs: list) -> None:
-            scrape_client = ScrapeClient(
-                provider=self.provider,
-                web_url=HttpUrl(f"{BASE_URL}{int(_jobs[0]['id'])}"),
-            )
+        def _fetch_chunk_details(chunk: list[RawJobOffer]) -> None:
             nonlocal done
 
-            for job in _jobs:
+            scrape_client = ScrapeClient(
+                provider=self.provider,
+                web_url=HttpUrl(BASE_URL),
+            )
+
+            for job in chunk:
                 try:
                     with lock:
                         done += 1
 
                     if random.random() < 0.4:  # print with 40% probability
                         logger.info(
-                            f"[Details] Fetching jobs details {done}/{COUNT_TOTAL} (id={job['id']})"
+                            f"[Details] Fetching jobs details {done}/{COUNT_TOTAL} (id={job.provider_job_id})"
                         )
 
-                    job_id_url = HttpUrl(f"{BASE_URL}{int(job['id'])}")
+                    job_id_url = HttpUrl(f"{BASE_URL}{job.provider_job_id}")
                     self._polite_delay(base=2.0, jitter=1.5)
 
-                    job_id_response = scrape_client.web_page_search(web_url=job_id_url)
+                    response = scrape_client.web_page_search(web_url=job_id_url)
 
-                    if job_id_response.ok:
-                        job_id_soup = BeautifulSoup(job_id_response.text, "html.parser")
-                        level_card = job_id_soup.select_one(
-                            "ul.description__job-criteria-list li"
-                        )
-                        level = (
-                            level_card.get_text(strip=True)
-                            .replace("Seniority level", "")
-                            .strip()
-                            if level_card
-                            else None
-                        )
-                        descripcion_card = job_id_soup.select_one(
+                    if response.ok:
+                        soup = BeautifulSoup(response.text, "html.parser")
+
+                        raw_contract_type = None
+                        raw_seniority = None
+                        for li in soup.select(
+                            "ul.description__job-criteria-list li.description__job-criteria-item"
+                        ):
+                            label_node = li.select_one(
+                                ".description__job-criteria-subheader"
+                            )
+                            value_node = li.select_one(
+                                ".description__job-criteria-text.description__job-criteria-text--criteria"
+                            ) or li.select_one(".description__job-criteria-text")
+
+                            if not label_node or not value_node:
+                                continue
+
+                            if label_node.get_text(strip=True) == "Seniority level":
+                                raw_seniority = value_node.get_text(strip=True)
+
+                            if label_node.get_text(strip=True) == "Employment type":
+                                raw_contract_type = value_node.get_text(strip=True)
+
+                        raw_time_posted = soup.select_one(".posted-time-ago__text")
+                        if raw_time_posted:
+                            raw_time_posted = raw_time_posted.get_text(strip=True)
+
+                        desc_node = soup.select_one(
                             "div.description__text--rich div.show-more-less-html__markup"
                         )
                         description = (
-                            descripcion_card.get_text(separator="\n", strip=True)
-                            if descripcion_card
+                            desc_node.get_text(separator="\n", strip=True)
+                            if desc_node
                             else None
                         )
+                        raw_description_html = str(desc_node) if desc_node else None
 
-                        job["level"] = level
-                        job["description"] = description
+                        updated_job = job.model_copy(
+                            update={
+                                "description": description,
+                                "raw_seniority": raw_seniority,
+                                "raw_contract_type": raw_contract_type,
+                                "raw_time_posted": raw_time_posted,
+                                "raw_description_html": raw_description_html,
+                            }
+                        )
+
+                        with lock:
+                            enriched_jobs.append(updated_job)
 
                     else:
                         logger.warning(
-                            f"Skipping job {job['id']} details: status={job_id_response.status_code}"
+                            f"Skipping job {job.provider_job_id} details: status={response.status_code}"
                         )
                 except ScrapeClientError as e:
                     logger.warning(
-                        f"Skipping job {job['id']} details due to ScrapeClientError: {e}"
+                        f"Skipping job {job.provider_job_id} details due to ScrapeClientError: {e}"
                     )
 
         with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            list(executor.map(_fetch_offers_details, jobs_lists))
+            list(executor.map(_fetch_chunk_details, jobs_chunks))
 
         # Flatten the list of lists back into a single list using itertools.chain
-        jobs = list(chain.from_iterable(jobs_lists))
+        # jobs = list(chain.from_iterable(jobs_lists))
 
         logger.info(
             f"[Details] Completed LinkedIn jobs details fetch: "
             f"{COUNT_TOTAL} listings processed [title='{self.title}', location='{self.location}']."
         )
-        return jobs
+        return enriched_jobs

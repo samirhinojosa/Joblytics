@@ -81,7 +81,9 @@ class BasePipeline(ABC, Generic[T]):
     def load(self, items: Sequence[T]) -> int:
         """Persist items and return number of stored records."""
 
-    def post_run(self, items: Sequence[T] | None, report: PipelineReport | None) -> None:
+    def post_run(
+        self, items: Sequence[T] | None, report: PipelineReport | None
+    ) -> None:
         """Optional hook: metrics/logging/artifacts."""
         return
 

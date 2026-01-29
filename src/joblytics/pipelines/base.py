@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import List, Dict, Any
 
+
 @dataclass(frozen=True)
 class PipelineReport:
     provider: str
@@ -29,14 +30,24 @@ class BasePipeline(ABC):
         - `poll_type` est une chaîne de caractères valide.
         """
         if not isinstance(self.pdf_path, Path):
-            self.logger.error("Le paramètre 'pdf_path' doit être une instance de pathlib.Path.")
-            raise TypeError("Le paramètre 'pdf_path' doit être une instance de pathlib.Path.")
+            self.logger.error(
+                "Le paramètre 'pdf_path' doit être une instance de pathlib.Path."
+            )
+            raise TypeError(
+                "Le paramètre 'pdf_path' doit être une instance de pathlib.Path."
+            )
         if not self.pdf_path.exists():
             self.logger.error(f"Le fichier spécifié est introuvable : {self.pdf_path}")
-            raise FileNotFoundError(f"Le fichier spécifié est introuvable : {self.pdf_path}")
+            raise FileNotFoundError(
+                f"Le fichier spécifié est introuvable : {self.pdf_path}"
+            )
         if not isinstance(self.poll_type, str):
-            self.logger.error("Le paramètre 'poll_type' doit être une chaîne de caractères.")
-            raise TypeError("Le paramètre 'poll_type_id' doit être une chaîne de caractères.")
+            self.logger.error(
+                "Le paramètre 'poll_type' doit être une chaîne de caractères."
+            )
+            raise TypeError(
+                "Le paramètre 'poll_type_id' doit être une chaîne de caractères."
+            )
 
     @abstractmethod
     def extract(self) -> tuple[Dict[str, Any], List[Dict[str, Any]]]:
