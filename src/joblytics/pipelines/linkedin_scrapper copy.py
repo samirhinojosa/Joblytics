@@ -22,143 +22,143 @@ from joblytics.domain.entities.job_offer import RawJobOffer
 logger = logging.getLogger("joblytics")
 
 
-class TimePosted(str, Enum):
-    ALL = "all"
-    DAY = "day"
-    WEEK = "week"
-    MONTH = "month"
+# class TimePosted(str, Enum):
+#     ALL = "all"
+#     DAY = "day"
+#     WEEK = "week"
+#     MONTH = "month"
 
 
-TIME_POSTED_TO_LINKEDIN = {
-    TimePosted.ALL: "",
-    TimePosted.DAY: "r86400",
-    TimePosted.WEEK: "r604800",
-    TimePosted.MONTH: "r2592000",
-}
+# TIME_POSTED_TO_LINKEDIN = {
+#     TimePosted.ALL: "",
+#     TimePosted.DAY: "r86400",
+#     TimePosted.WEEK: "r604800",
+#     TimePosted.MONTH: "r2592000",
+# }
 
 
-class WorkModality(str, Enum):
-    ALL = "all"
-    ONSITE = "onsite"
-    HYBRID = "hybrid"
-    REMOTE = "remote"
+# class WorkModality(str, Enum):
+#     ALL = "all"
+#     ONSITE = "onsite"
+#     HYBRID = "hybrid"
+#     REMOTE = "remote"
 
 
-WORK_MODALITY_TO_LINKEDIN = {
-    WorkModality.ALL: "",
-    WorkModality.ONSITE: "1",
-    WorkModality.HYBRID: "2",
-    WorkModality.REMOTE: "3",
-}
+# WORK_MODALITY_TO_LINKEDIN = {
+#     WorkModality.ALL: "",
+#     WorkModality.ONSITE: "1",
+#     WorkModality.HYBRID: "2",
+#     WorkModality.REMOTE: "3",
+# }
 
 
 class LinkedInScrapper(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    # model_config = ConfigDict(extra="forbid")
 
-    title: Annotated[str, Field(min_length=1, description="Job title")]
-    location: Annotated[str, Field(min_length=1, description="Job location")]
-    distance: Annotated[int, Field(ge=0, le=100, description="Search radius")] = 10
-    time_posted: TimePosted = TimePosted.ALL
-    work_modality: WorkModality = WorkModality.ALL
+    # title: Annotated[str, Field(min_length=1, description="Job title")]
+    # location: Annotated[str, Field(min_length=1, description="Job location")]
+    # distance: Annotated[int, Field(ge=0, le=100, description="Search radius")] = 10
+    # time_posted: TimePosted = TimePosted.ALL
+    # work_modality: WorkModality = WorkModality.ALL
     provider: str
 
     # Config global
-    PAGE_SIZE: int = 10
+    # PAGE_SIZE: int = 10
 
     # Normalizes input strings
-    @field_validator("title", "location")
-    @classmethod
-    def _strip(cls, v: str) -> str:
-        return v.strip()
+    # @field_validator("title", "location")
+    # @classmethod
+    # def _strip(cls, v: str) -> str:
+    #     return v.strip()
 
-    def generate_jobs_url(
-        self,
-        title: str | None = None,
-        location: str | None = None,
-        distance: int | None = None,
-        geo_id: int | None = None,
-        offset: int | None = None,
-        time_posted: TimePosted | None = None,
-        work_modality: WorkModality | None = None,
-    ) -> HttpUrl:
-        """Generate the LinkedIn job search URL using the model values (and allowing for occasional overrides)
+    # def generate_jobs_url(
+    #     self,
+    #     title: str | None = None,
+    #     location: str | None = None,
+    #     distance: int | None = None,
+    #     # geo_id: int | None = None,
+    #     # offset: int | None = None,
+    #     time_posted: TimePosted | None = None,
+    #     work_modality: WorkModality | None = None,
+    # ) -> HttpUrl:
+    #     """Generate the LinkedIn job search URL using the model values (and allowing for occasional overrides)
 
-        Args:
-            title (Optional[str]): Job title override. If None, uses the model title.
-            location (Optional[str]): Job location override. If None, uses the model location.
-            distance (Optional[int]): Search radius override in km. If None, uses the model distance.
-            geo_id (Optional[int]): LinkedIn geoId to restrict the search area.
-            offset (Optional[int]): Pagination offset for job listings.
-            time_posted (Optional[TimePosted]): Filter by time posted. If None, uses the model value.
-            work_modality (Optional[WorkModality]): Onsite / hybrid / remote filter. If None, uses the model value.
+    #     Args:
+    #         title (Optional[str]): Job title override. If None, uses the model title.
+    #         location (Optional[str]): Job location override. If None, uses the model location.
+    #         distance (Optional[int]): Search radius override in km. If None, uses the model distance.
+    #         geo_id (Optional[int]): LinkedIn geoId to restrict the search area.
+    #         offset (Optional[int]): Pagination offset for job listings.
+    #         time_posted (Optional[TimePosted]): Filter by time posted. If None, uses the model value.
+    #         work_modality (Optional[WorkModality]): Onsite / hybrid / remote filter. If None, uses the model value.
 
-        Returns:
-            HttpUrl: Fully built LinkedIn job search URL.
-        """
-        params = {
-            "keywords": (title or self.title),
-            "location": (location or self.location),
-            "distance": (distance if distance is not None else self.distance),
-        }
+    #     Returns:
+    #         HttpUrl: Fully built LinkedIn job search URL.
+    #     """
+    #     # params = {
+    #     #     "keywords": (title or self.title),
+    #     #     "location": (location or self.location),
+    #     #     "distance": (distance if distance is not None else self.distance),
+    #     # }
 
-        tp_enum = time_posted or self.time_posted
-        tp = TIME_POSTED_TO_LINKEDIN[tp_enum]
-        if tp:
-            params["f_TPR"] = tp
+    #     # tp_enum = time_posted or self.time_posted
+    #     # tp = TIME_POSTED_TO_LINKEDIN[tp_enum]
+    #     # if tp:
+    #     #     params["f_TPR"] = tp
 
-        rm_enum = work_modality or self.work_modality
-        rm = WORK_MODALITY_TO_LINKEDIN[rm_enum]
-        if rm:
-            params["f_WT"] = rm
+    #     # rm_enum = work_modality or self.work_modality
+    #     # # rm = WORK_MODALITY_TO_LINKEDIN[rm_enum]
+    #     # if rm:
+    #     #     params["f_WT"] = rm
 
-        if offset is not None:
-            BASE_URL = (
-                "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
-            )
-            if geo_id is not None:
-                params["geoId"] = geo_id
-            params["position"] = 1
-            params["pageNum"] = 0
-            params["start"] = offset
-            params["count"] = self.PAGE_SIZE
-        else:
-            BASE_URL = "https://www.linkedin.com/jobs/search"
+    #     if offset is not None:
+    #         # BASE_URL = (
+    #         #     "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
+    #         # )
+    #         if geo_id is not None:
+    #             params["geoId"] = geo_id
+    #         params["position"] = 1
+    #         params["pageNum"] = 0
+    #         params["start"] = offset
+    #         params["count"] = self.PAGE_SIZE
+    #     else:
+    #         # BASE_URL = "https://www.linkedin.com/jobs/search"
 
-        return HttpUrl(f"{BASE_URL}?{urlencode(params, quote_via=quote_plus)}")
+    #     return HttpUrl(f"{BASE_URL}?{urlencode(params, quote_via=quote_plus)}")
 
-    def number_of_offers(self, response: requests.Response) -> int:
-        """
-        Getting the number of offers
-        """
-        soup = BeautifulSoup(response.text, "html.parser")
-        node = soup.select_one("span.results-context-header__job-count")
-        count = int(re.sub(r"\D+", "", node.get_text(strip=True))) if node else 0
+    # def number_of_offers(self, response: requests.Response) -> int:
+    #     """
+    #     Getting the number of offers
+    #     """
+    #     soup = BeautifulSoup(response.text, "html.parser")
+    #     node = soup.select_one("span.results-context-header__job-count")
+    #     count = int(re.sub(r"\D+", "", node.get_text(strip=True))) if node else 0
 
-        return count
+    #     return count
 
-    def _extract_geo_id(self, response: requests.Response) -> int | None:
-        """
-        Extract the geoId value from the main search page HTML.
-        Returns None if not found.
-        """
-        try:
-            soup = BeautifulSoup(response.text, "html.parser")
-            node = soup.select_one('form#jserp-filters input[name="geoId"]')
+    # def _extract_geo_id(self, response: requests.Response) -> int | None:
+    #     """
+    #     Extract the geoId value from the main search page HTML.
+    #     Returns None if not found.
+    #     """
+    #     try:
+    #         soup = BeautifulSoup(response.text, "html.parser")
+    #         node = soup.select_one('form#jserp-filters input[name="geoId"]')
 
-            if not node:
-                logger.debug("geoId not found in HTML")
-                return None
+    #         if not node:
+    #             logger.debug("geoId not found in HTML")
+    #             return None
 
-            val = node.get("value")
-            geo_id = val.strip() if isinstance(val, str) else ""
-            if geo_id.isdigit():
-                return int(geo_id)
-            else:
-                logger.debug(f"geoId found but invalid: {geo_id}")
-                return None
-        except Exception as e:
-            logger.warning(f"Failed to extract geoId: {e}")
-            return None
+    #         val = node.get("value")
+    #         geo_id = val.strip() if isinstance(val, str) else ""
+    #         if geo_id.isdigit():
+    #             return int(geo_id)
+    #         else:
+    #             logger.debug(f"geoId found but invalid: {geo_id}")
+    #             return None
+    #     except Exception as e:
+    #         logger.warning(f"Failed to extract geoId: {e}")
+    #         return None
 
     def _polite_delay(self, base: float = 0.6, jitter: float = 0.5) -> None:
         """
@@ -209,7 +209,7 @@ class LinkedInScrapper(BaseModel):
                     url=self.generate_jobs_url(),
                 )
 
-            if number_of_offers > 1000:
+                # if number_of_offers > 1000:
                 logger.warning(
                     f"[Summary] Processing capped at 1,000 offers to avoid LinkedIn rate limits (total {number_of_offers})"
                 )
@@ -320,7 +320,7 @@ class LinkedInScrapper(BaseModel):
         )
 
         MAX_WORKERS = 5
-        BASE_URL = "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/"
+        # BASE_URL = "https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/"
 
         # NOTE:
         # Split the list into chunks of 5 dictionaries each using zip_longest

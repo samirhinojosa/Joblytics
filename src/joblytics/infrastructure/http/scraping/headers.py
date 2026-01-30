@@ -4,7 +4,7 @@ from typing import Self
 from pydantic import BaseModel, ConfigDict, PrivateAttr, model_validator, HttpUrl
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("joblytics")
 
 
 class RandomHeaderProvider(BaseModel):

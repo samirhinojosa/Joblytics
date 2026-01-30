@@ -1,14 +1,15 @@
 import typer
-
+import logging
 from joblytics.core.config.settings import get_settings
 from joblytics.core.config.logger import setup_logging
 from joblytics.pipelines.linkedin_scrapper import (
-    LinkedInScrapper,
     TimePosted,
     WorkModality,
 )
-from joblytics.domain.exceptions.errors import NoOffersFoundError
 from joblytics.core.utils.cli import render_table
+from joblytics.domain.exceptions.errors import NoOffersFoundError
+
+logger = logging.getLogger("joblytics")
 
 app = typer.Typer()
 
@@ -27,8 +28,6 @@ def main(
     """
     settings = get_settings()
     setup_logging(settings, verbose=verbose)
-
-    import logging
 
     logging.getLogger("joblytics").debug("CLI initialized (verbose=%s)", verbose)
 
@@ -54,38 +53,33 @@ def linkedIn_scrapper(
     """
     Extracts job postings from LinkedIn and displays a summary table in the console.
     """
-    import logging
 
-    logger = logging.getLogger("joblytics")
+    from joblytics.pipelines.linkedin.orchestrator import LinkedinInScraperXX
 
     try:
-        logger.info(
-            f"LinkedIn scrape started (title={title}, location={location}, time_posted={time_posted.value}, work_modality={work_modality.value})"
+        color = typer.colors.GREEN
+        typer.secho(
+            f"✨ [LinkedIn] scrape started (title={title}, "
+            f"location={location}, time_posted={time_posted.value}, "
+            f"work_modality={work_modality.value}).",
+            fg=color,
         )
 
-        scrapper = LinkedInScrapper(
+        pipeline = LinkedinInScraperXX(
+            provider="linkedin",
             title=title,
             location=location,
             time_posted=time_posted,
             work_modality=work_modality,
         )
-        jobs_summary = scrapper.fetch_offers_summary() or []
-        logger.debug(f"Fetched summary offers: {len(jobs_summary)}")
 
-        offers = scrapper.fetch_offers_details(jobs_summary)
+        report = pipeline.run()
 
-        jobs_details = [offer.model_dump() for offer in (offers or [])]
-
-        if not jobs_details:
-            logger.warning("No job details fetched.")
-            return
-        logger.debug(f"Fetched job details: {len(jobs_details)}")
-
-        if show_table:
-            logger.info("Rendering summary table in console output")
+        if show_table and report.sample_data:
+            typer.echo("### 📋 Results preview (Top 5) ###")
 
             table = render_table(
-                jobs_details[:10],
+                report.sample_data,
                 drop={
                     "provider",
                     "provider_job_id",
@@ -106,17 +100,21 @@ def linkedIn_scrapper(
                 },
             )
 
+            typer.echo("-" * 100)
             print(table)
+            typer.echo("-" * 100)
 
-        logger.info("LinkedIn scrape finished successfully")
+        color = typer.colors.GREEN if report.produced > 0 else typer.colors.YELLOW
+        typer.secho("🟢 [LinkedIn] Finalized.", fg=color)
+
     except NoOffersFoundError as e:
-        logger.warning(str(e))
-        typer.echo("No offers found. Exiting.")
+        logger.warning(f"No results found: {e}")
+        typer.secho(f"🟡 No offers results. Info: {e}.", fg=typer.colors.YELLOW)
         raise typer.Exit(code=0)
     except Exception as e:
         logger.exception("Error running linkedin-scrape")
         typer.secho(
-            f"Error running linkedin-scrape: {e}", err=True, fg=typer.colors.RED
+            f"🔴 Error running linkedin-scrape: {e}", err=True, fg=typer.colors.RED
         )
         raise typer.Exit(code=1)
 

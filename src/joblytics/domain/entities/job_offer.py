@@ -7,8 +7,6 @@ from datetime import datetime, timezone
 
 
 # --- Domain's Enums ---
-
-
 class WorkModality(str, Enum):
     ONSITE = "onsite"
     HYBRID = "hybrid"
