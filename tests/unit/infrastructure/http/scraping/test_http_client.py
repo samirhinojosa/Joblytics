@@ -5,9 +5,9 @@ import requests
 import pytest
 from pathlib import Path
 
-from joblytics.infrastructure.http.header_provider import RandomHeaderProvider
-from joblytics.infrastructure.http.scraper.scrape_client import ScrapeClient
-from joblytics.infrastructure.http.policies.http_policy import HttpPolicy
+from joblytics.infrastructure.http.scraping.headers import RandomHeaderProvider
+from joblytics.infrastructure.http.scraping.http_client import ScrapeClient
+from joblytics.infrastructure.http.scraping.policies.policy import HttpPolicy
 
 
 @pytest.fixture
@@ -28,7 +28,7 @@ class DummyHeaderProvider(RandomHeaderProvider):
 
 def _patch_settings(monkeypatch, *, provider: str, policy: HttpPolicy) -> None:
     """
-    Monkeypatch get_settings() in the scrape_client module so ScrapeClient
+    Monkeypatch get_settings() in the http_client module so ScrapeClient
     always resolves a deterministic policy for tests.
     """
 
@@ -38,7 +38,7 @@ def _patch_settings(monkeypatch, *, provider: str, policy: HttpPolicy) -> None:
             return policy
 
     monkeypatch.setattr(
-        "joblytics.infrastructure.http.scraper.scrape_client.get_settings",
+        "joblytics.infrastructure.http.scraping.http_client.get_settings",
         lambda: FakeSettings(),
         raising=True,
     )
@@ -92,7 +92,7 @@ def test_web_page(monkeypatch, valid_ua_file: Path) -> None:
 
 
 def test_get_backoff_sleep_basic(monkeypatch, valid_ua_file: Path) -> None:
-    # policy determinista: backoff_factor=1.0; cap alto
+    # deterministic politics: backoff_factor=1.0; cap alto
     _patch_settings(
         monkeypatch,
         provider="linkedin",
@@ -101,7 +101,7 @@ def test_get_backoff_sleep_basic(monkeypatch, valid_ua_file: Path) -> None:
 
     # Freeze jitter inside the module where it's used
     monkeypatch.setattr(
-        "joblytics.infrastructure.http.scraper.scrape_client.random.uniform",
+        "joblytics.infrastructure.http.scraping.http_client.random.uniform",
         lambda a, b: 0.25,
         raising=True,
     )
@@ -210,7 +210,7 @@ def test_web_page_retryable_with_malformed_retry_after_uses_backoff(
 
     # deterministic backoff
     monkeypatch.setattr(
-        "joblytics.infrastructure.http.scraper.scrape_client.ScrapeClient._get_backoff_sleep",
+        "joblytics.infrastructure.http.scraping.http_client.ScrapeClient._get_backoff_sleep",
         lambda self, attempt: 0.3,
         raising=True,
     )
@@ -264,7 +264,7 @@ def test_web_page_non_retryable_raises_then_retries_via_exception(
     monkeypatch.setattr("time.sleep", lambda s: sleeps.append(float(s)))
 
     monkeypatch.setattr(
-        "joblytics.infrastructure.http.scraper.scrape_client.ScrapeClient._get_backoff_sleep",
+        "joblytics.infrastructure.http.scraping.http_client.ScrapeClient._get_backoff_sleep",
         lambda self, attempt: 0.2,
         raising=True,
     )
@@ -289,7 +289,7 @@ def test_web_page_non_retryable_raises_then_retries_via_exception(
 def test_web_page_last_attempt_retryable_raises_scrape_client_error(
     monkeypatch, valid_ua_file: Path
 ) -> None:
-    from joblytics.infrastructure.http.scraper.scrape_client_error import (
+    from joblytics.infrastructure.http.scraping.errors import (
         ScrapeClientError,
     )
 
@@ -322,7 +322,7 @@ def test_web_page_last_attempt_retryable_raises_scrape_client_error(
     monkeypatch.setattr("time.sleep", lambda s: None)
 
     monkeypatch.setattr(
-        "joblytics.infrastructure.http.scraper.scrape_client.ScrapeClient._get_backoff_sleep",
+        "joblytics.infrastructure.http.scraping.http_client.ScrapeClient._get_backoff_sleep",
         lambda self, attempt: 0.1,
         raising=True,
     )

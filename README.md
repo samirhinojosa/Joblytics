@@ -39,18 +39,18 @@ These options apply to __all commands__.
 Example:<br>
 ℹ️ When `--verbose` or `-v` is enabled, the application initializes logging with `DEBUG` level instead of `INFO`.
 ```bash
-joblytics --verbose linkedin-scrape "Data Engineer" Paris
-joblytics -v linkedin-scrape "Data Engineer" Paris
+joblytics --verbose linkedin "Data Engineer" Paris
+joblytics -v linkedin "Data Engineer" Paris
 ```
 Default (as follows): `INFO` level logging
 ```bash
-joblytics linkedin-scrape "Data Engineer" Paris
+joblytics linkedin "Data Engineer" Paris
 ```
 
 ### ▶️ Scraping LinkedIn Jobs
 
 ```bash
-joblytics linkedin-scrape "Data Engineer" Grenoble
+joblytics linkedin "Data Engineer" Grenoble
 ```
 
 ### ⏱ Filter by publication date (time_posted)
@@ -93,12 +93,12 @@ By default, __no table is displayed in the console__.
 #### Show summary table in console
 
 ```bash
-joblytics linkedin-scrape "Data Engineer" Grenoble --show-table
+joblytics linkedin "Data Engineer" Grenoble --show-table
 ```
 
 #### Default behavior (no table)
 ```bash
-joblytics linkedin-scrape "Data Engineer" Grenoble
+joblytics linkedin "Data Engineer" Grenoble
 ```
 ℹ️ The --show-table flag enables rendering of a formatted summary table in the console output.<br>
 Without this flag, the CLI runs in silent/data mode, suitable for pipelines, cron jobs, and integrations.
@@ -187,22 +187,32 @@ To execute: `make Command`
 ## 📂 Project Structure (overview)
     .
     ├── src
-        ├── joblytics
-            ├── core                    # Central application configuration
-                ├── config              # (settings, environment, logging)
-                ├── utils
-            ├── domain                  # Business rules, schemas, invariants
-                ├── exceptions          # Domain-level exceptions and business-rule violations
-                ├── schemas             # Pydantic models (DTOs) for validation and serialization
-            ├── infrastructure          # Scraping, HTTP clients, persistence, APIs
-                ├── http                # HTTP client, scraper utilities, and header providers
-                ├── repositories        # Concrete implementations of data access (DB, cache, etc.)
-                ├── services            # Integrations with external services/APIs (e.g., ML, third-party APIs)
-            ├── pipelines               # Scrapers and data ingestion workflows
-                ├── linkedin
-            ├── cli.py                  # Typer-based CLI entrypoint for scraping workflows (start here)
+    │   ├── joblytics
+    │   │   ├── core                    # Central application configuration
+    │   │   │   ├── config              # Settings, environment, logging
+    │   │   │   └── utils               # Cross-cutting helpers
+    │   │   │
+    │   │   ├── domain                  # Business rules, domain models, invariants
+    │   │   │   ├── entities            # Domain entities (business models and invariants)
+    │   │   │   └── exceptions          # Domain-level exceptions and business-rule violations
+    │   │   │
+    │   │   ├── infrastructure          # Technical implementations (IO, network, persistence)
+    │   │   │   ├── http                # HTTP clients and scraping infrastructure
+    │   │   │   │   └── scraping
+    │   │   │   └── repositories        # Concrete implementations of data access (DB, cache, etc.)
+    │   │   │
+    │   │   ├── pipelines               # Provider-specific data pipelines (scraping + parsing + normalization)
+    │   │   │   ├── base.py
+    │   │   │   └── linkedin
+    │   │   │
+    │   │   ├── services                # Integrations with external services/APIs (e.g., ML, third-party APIs)
+    │   │   │
+    │   └── └── cli.py                  # Typer-based CLI entrypoint for scraping workflows (start here)
+    │
     ├── notebooks                       # Experimental development area (marimo notebooks)
+    │
     ├── tests                           # Unit and integration tests
+    │
     ├── docker-compose.yml              # Local PostgreSQL setup for development
     ├── Makefile                        # Developer automation: install, lint, test, coverage, quality gates
     ├── LICENSE
