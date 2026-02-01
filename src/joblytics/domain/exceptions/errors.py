@@ -10,14 +10,14 @@ class NoOffersFoundError(DomainError):
         self,
         title: str,
         location: str,
-        distance: int,
+        # distance: int,
         time_posted: str,
         work_modality: str,
         url: HttpUrl | None = None,
     ):
         self.title = title
         self.location = location
-        self.distance = distance
+        # self.distance = distance
         self.time_posted = time_posted
         self.work_modality = work_modality
         self.url = url

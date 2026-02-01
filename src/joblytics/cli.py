@@ -2,12 +2,11 @@ import typer
 import logging
 from joblytics.core.config.settings import get_settings
 from joblytics.core.config.logger import setup_logging
-from joblytics.pipelines.linkedin_scrapper import (
-    TimePosted,
-    WorkModality,
-)
 from joblytics.core.utils.cli import render_table
+from joblytics.pipelines.linkedin.models import TimePosted, WorkModality
 from joblytics.domain.exceptions.errors import NoOffersFoundError
+from joblytics.pipelines.linkedin.pipeline import LinkedInPipeline
+
 
 logger = logging.getLogger("joblytics")
 
@@ -54,8 +53,6 @@ def linkedIn_scrapper(
     Extracts job postings from LinkedIn and displays a summary table in the console.
     """
 
-    from joblytics.pipelines.linkedin.orchestrator import LinkedinInScraperXX
-
     try:
         color = typer.colors.GREEN
         typer.secho(
@@ -65,7 +62,7 @@ def linkedIn_scrapper(
             fg=color,
         )
 
-        pipeline = LinkedinInScraperXX(
+        pipeline = LinkedInPipeline(
             provider="linkedin",
             title=title,
             location=location,

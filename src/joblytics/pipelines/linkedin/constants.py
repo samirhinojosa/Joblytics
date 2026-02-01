@@ -29,12 +29,13 @@ SUMMARY_SELECTORS = {
     "job_count": "span.results-context-header__job-count",
     "geo_id_input": 'form#jserp-filters input[name="geoId"]',
     "job_card": "li",
+    "card_container": "[data-entity-urn]",
     "job_id": "data-entity-urn",
     "title": "h3, .base-search-card__title",
     "company": "h4, .base-search-card__subtitle",
     "location": ".job-search-card__location",
+    "link": "a.base-card__full-link",
     "metadata": ".base-search-card__metadata, .job-search-card__metadata",
-    # "description": "div.description__text--rich div.show-more-less-html__markup",
 }
 
 # CSS detail search selectors (job Page)

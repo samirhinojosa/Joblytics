@@ -88,14 +88,15 @@ class ScrapeClient(BaseModel):
             return
 
         base_delay = 1.0 / rps
-        jmin = float(self.policy.jitter_seconds_min or 0.0)
-        jmax = float(self.policy.jitter_seconds_max or 0.0)
+        jmin = float(self.policy.jitter_seconds_min or 1.0)
+        jmax = float(self.policy.jitter_seconds_max or 5.0)
         jitter = random.uniform(jmin, jmax) if jmax > 0 else 0.0
 
         sleep = base_delay + jitter
         logger.debug(
-            f"Throttling: sleeping {sleep:.2f}s (rps={rps}, jitter=[{jmin},{jmax}])"
+            f"[Throttling]: 🛡️  Anti-Bot: Sleeping {sleep:.2f}s (rps={rps}, jitter=[{jmin},{jmax}]) before next request..."
         )
+
         time.sleep(sleep)
 
     def web_page_search(self, web_url: Optional[HttpUrl] = None) -> requests.Response:
@@ -125,9 +126,7 @@ class ScrapeClient(BaseModel):
 
         for attempt in range(1, max_retries + 1):
             try:
-                if (
-                    self.enable_throttle and random.random() < 0.5
-                ):  # If enable -> 50% probability of execution
+                if self.enable_throttle:
                     self._throttle()
 
                 header = self.header_provider.header(url)

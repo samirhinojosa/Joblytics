@@ -85,8 +85,8 @@ class Settings(BaseSettings):
         per_provider={
             "linkedin": HttpPolicy(
                 rate_limit_per_second=0.5,
-                jitter_seconds_min=0.2,
-                jitter_seconds_max=0.8,
+                jitter_seconds_min=1.5,
+                jitter_seconds_max=3.5,
                 timeout_connect=5.0,
                 timeout_read=15.0,
                 max_retries=3,

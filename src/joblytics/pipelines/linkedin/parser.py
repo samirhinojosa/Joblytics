@@ -52,6 +52,7 @@ class LinkedInParser:
         Parses the search results list.
         Distinguishes between mandatory and optional fields.
         """
+
         soup = BeautifulSoup(html, "html.parser")
         cards: list[dict[str, Any]] = []
 

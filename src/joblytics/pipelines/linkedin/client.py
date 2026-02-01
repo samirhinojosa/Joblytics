@@ -1,10 +1,16 @@
 from urllib.parse import urlencode, quote_plus
 from pydantic import HttpUrl
 from typing import Any
+import time
+import random
 import logging
 import requests
 from .models import LinkedInConfig
-from .constants import LINKEDIN_SEARCH_URL, LINKEDIN_API_SEARCH_URL
+from .constants import (
+    LINKEDIN_SEARCH_URL,
+    LINKEDIN_API_SEARCH_URL,
+    LINKEDIN_DETAILS_URL,
+)
 from joblytics.infrastructure.http.scraping.http_client import ScrapeClient
 
 
@@ -21,7 +27,7 @@ class LinkedInClient:
             enable_throttle=False,
         )
 
-    def build_search_ulr(
+    def build_search_url(
         self, offset: int | None = None, geo_id: int | None = None
     ) -> HttpUrl:
         """
@@ -66,7 +72,19 @@ class LinkedInClient:
 
         return HttpUrl(f"{base}?{query_string}")
 
-    def request(self, url: str) -> requests.Response:
+    def build_detail_url(self, job_id: str) -> HttpUrl:
+        """
+        Constructs the URL to fetch the full details of a specific job offer.
+
+        Args:
+            job_id (str): The unique LinkedIn job identifier.
+
+        Returns:
+            str: The full URL for the guest-facing job posting API.
+        """
+        return HttpUrl(f"{LINKEDIN_DETAILS_URL}{job_id}")
+
+    def request(self, url: HttpUrl) -> requests.Response:
         """
         Executes a network request to a specific LinkedIn URL.
 
@@ -83,7 +101,7 @@ class LinkedInClient:
                 access to status codes, headers, and the raw HTML body.
         """
         try:
-            return self.scrape_client.web_page_search(web_url=HttpUrl(url))
+            return self.scrape_client.web_page_search(web_url=url)
         except Exception as e:
             self.logger.error(f"Error in the request to {url}: {e}")
             raise
