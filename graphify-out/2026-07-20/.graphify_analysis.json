@@ -1,0 +1,397 @@
+{
+  "communities": {
+    "0": [
+      "src_joblytics_cli_linkedin_scrapper",
+      "src_joblytics_cli_rationale_52",
+      "src_joblytics_pipelines_linkedin_client",
+      "src_joblytics_pipelines_linkedin_constants",
+      "src_joblytics_pipelines_linkedin_models",
+      "src_joblytics_pipelines_linkedin_models_linkedinconfig",
+      "src_joblytics_pipelines_linkedin_models_linkedinconfig_strip_whitespace",
+      "src_joblytics_pipelines_linkedin_models_linkedinconfig_time_posted_value",
+      "src_joblytics_pipelines_linkedin_models_linkedinconfig_work_modality_value",
+      "src_joblytics_pipelines_linkedin_models_py_basemodel",
+      "src_joblytics_pipelines_linkedin_models_py_enum",
+      "src_joblytics_pipelines_linkedin_models_py_str",
+      "src_joblytics_pipelines_linkedin_models_rationale_22",
+      "src_joblytics_pipelines_linkedin_models_rationale_41",
+      "src_joblytics_pipelines_linkedin_models_rationale_46",
+      "src_joblytics_pipelines_linkedin_models_timeposted",
+      "src_joblytics_pipelines_linkedin_models_workmodality",
+      "src_joblytics_pipelines_linkedin_parser",
+      "src_joblytics_pipelines_linkedin_parser_linkedinparser",
+      "src_joblytics_pipelines_linkedin_parser_linkedinparser_init",
+      "src_joblytics_pipelines_linkedin_parser_linkedinparser_parse_geo_id",
+      "src_joblytics_pipelines_linkedin_parser_linkedinparser_parse_job_count",
+      "src_joblytics_pipelines_linkedin_parser_linkedinparser_parse_job_details",
+      "src_joblytics_pipelines_linkedin_parser_linkedinparser_parse_summary_cards",
+      "src_joblytics_pipelines_linkedin_parser_py_any",
+      "src_joblytics_pipelines_linkedin_parser_rationale_117",
+      "src_joblytics_pipelines_linkedin_parser_rationale_19",
+      "src_joblytics_pipelines_linkedin_parser_rationale_34",
+      "src_joblytics_pipelines_linkedin_parser_rationale_51",
+      "src_joblytics_pipelines_linkedin_parser_rationale_9",
+      "src_joblytics_pipelines_linkedin_pipeline",
+      "src_joblytics_pipelines_linkedin_pipeline_linkedinpipeline",
+      "src_joblytics_pipelines_linkedin_pipeline_linkedinpipeline_extract_jobs",
+      "src_joblytics_pipelines_linkedin_pipeline_rationale_23",
+      "workmodality"
+    ],
+    "1": [
+      "src_joblytics_infrastructure_http_scraping_headers",
+      "src_joblytics_infrastructure_http_scraping_headers_py_basemodel",
+      "src_joblytics_infrastructure_http_scraping_headers_randomheaderprovider",
+      "src_joblytics_infrastructure_http_scraping_headers_randomheaderprovider_user_agents",
+      "src_joblytics_infrastructure_http_scraping_headers_rationale_57",
+      "src_joblytics_infrastructure_http_scraping_http_client",
+      "src_joblytics_infrastructure_http_scraping_http_client_py_basemodel",
+      "src_joblytics_infrastructure_http_scraping_http_client_rationale_20",
+      "src_joblytics_infrastructure_http_scraping_http_client_scrapeclient",
+      "tests_unit_infrastructure_http_scraping_test_http_client",
+      "tests_unit_infrastructure_http_scraping_test_http_client_dummyheaderprovider",
+      "tests_unit_infrastructure_http_scraping_test_http_client_dummyheaderprovider_header",
+      "tests_unit_infrastructure_http_scraping_test_http_client_empty_or_invalid_file",
+      "tests_unit_infrastructure_http_scraping_test_http_client_patch_settings",
+      "tests_unit_infrastructure_http_scraping_test_http_client_py_httpurl",
+      "tests_unit_infrastructure_http_scraping_test_http_client_py_path",
+      "tests_unit_infrastructure_http_scraping_test_http_client_rationale_30",
+      "tests_unit_infrastructure_http_scraping_test_http_client_test_empty_or_invalid_file_raises_header_provider",
+      "tests_unit_infrastructure_http_scraping_test_http_client_test_get_backoff_sleep_basic",
+      "tests_unit_infrastructure_http_scraping_test_http_client_test_header_linkedin_referer_logic_header_provider",
+      "tests_unit_infrastructure_http_scraping_test_http_client_test_invalid_after_filtering_triggers_valueerror_header_provider",
+      "tests_unit_infrastructure_http_scraping_test_http_client_test_missing_file_header_provider",
+      "tests_unit_infrastructure_http_scraping_test_http_client_test_web_page",
+      "tests_unit_infrastructure_http_scraping_test_http_client_test_web_page_last_attempt_retryable_raises_scrape_client_error",
+      "tests_unit_infrastructure_http_scraping_test_http_client_test_web_page_non_retryable_raises_then_retries_via_exception",
+      "tests_unit_infrastructure_http_scraping_test_http_client_test_web_page_retryable_with_malformed_retry_after_uses_backoff",
+      "tests_unit_infrastructure_http_scraping_test_http_client_test_web_page_retryable_with_numeric_retry_after",
+      "tests_unit_infrastructure_http_scraping_test_http_client_ua_file_invalid",
+      "tests_unit_infrastructure_http_scraping_test_http_client_valid_ua_file"
+    ],
+    "2": [
+      "basesettings",
+      "src_joblytics_core_config_settings",
+      "src_joblytics_core_config_settings_loglevel",
+      "src_joblytics_core_config_settings_py_enum",
+      "src_joblytics_core_config_settings_py_path",
+      "src_joblytics_core_config_settings_py_str",
+      "src_joblytics_core_config_settings_runtimesettings",
+      "src_joblytics_core_config_settings_settings",
+      "src_joblytics_core_config_settings_settings_http_policy",
+      "src_joblytics_core_config_settings_settings_resolve_log_file",
+      "src_joblytics_core_config_settings_testsettings",
+      "src_joblytics_infrastructure_http_scraping_http_client_rationale_58",
+      "src_joblytics_infrastructure_http_scraping_http_client_scrapeclient_policy",
+      "src_joblytics_infrastructure_http_scraping_policies_init",
+      "src_joblytics_infrastructure_http_scraping_policies_policy",
+      "src_joblytics_infrastructure_http_scraping_policies_policy_httppolicy",
+      "src_joblytics_infrastructure_http_scraping_policies_policy_httppolicy_timeout",
+      "src_joblytics_infrastructure_http_scraping_policies_policy_policyresolver",
+      "src_joblytics_infrastructure_http_scraping_policies_policy_policyresolver_for_provider",
+      "src_joblytics_infrastructure_http_scraping_policies_policy_py_basemodel",
+      "src_joblytics_infrastructure_http_scraping_policies_policy_rationale_42",
+      "src_joblytics_infrastructure_http_scraping_policies_policy_rationale_52",
+      "src_joblytics_infrastructure_http_scraping_policies_policy_rationale_6",
+      "src_joblytics_infrastructure_http_scraping_policies_policy_rationale_65"
+    ],
+    "3": [
+      "self",
+      "src_joblytics_cli",
+      "src_joblytics_cli_main",
+      "src_joblytics_cli_rationale_25",
+      "src_joblytics_core_config_logger",
+      "src_joblytics_core_config_logger_compute_log_file",
+      "src_joblytics_core_config_logger_py_path",
+      "src_joblytics_core_config_logger_rationale_15",
+      "src_joblytics_core_config_logger_setup_logging",
+      "src_joblytics_core_config_settings_get_settings",
+      "src_joblytics_core_config_settings_py_any",
+      "src_joblytics_core_config_settings_rationale_136",
+      "src_joblytics_infrastructure_http_scraping_headers_randomheaderprovider_load_from_file",
+      "src_joblytics_infrastructure_http_scraping_headers_rationale_20",
+      "src_joblytics_infrastructure_http_scraping_http_client_rationale_51",
+      "src_joblytics_infrastructure_http_scraping_http_client_scrapeclient_model_post_init",
+      "tests_unit_core_test_settings",
+      "tests_unit_core_test_settings_py_path",
+      "tests_unit_core_test_settings_settings",
+      "tests_unit_core_test_settings_test_compute_log_file_verbose",
+      "tests_unit_core_test_settings_test_resolve_log_file"
+    ],
+    "4": [
+      "abc",
+      "src_joblytics_domain_entities_job_offer_rawjoboffer",
+      "src_joblytics_pipelines_base",
+      "src_joblytics_pipelines_base_basejobpipeline",
+      "src_joblytics_pipelines_base_basejobpipeline_extract_jobs",
+      "src_joblytics_pipelines_base_basejobpipeline_init",
+      "src_joblytics_pipelines_base_basejobpipeline_log_report",
+      "src_joblytics_pipelines_base_basejobpipeline_run",
+      "src_joblytics_pipelines_base_pipelinereport",
+      "src_joblytics_pipelines_base_pipelinereport_duration",
+      "src_joblytics_pipelines_base_pipelinereport_human_duration",
+      "src_joblytics_pipelines_base_py_any",
+      "src_joblytics_pipelines_base_rationale_32"
+    ],
+    "5": [
+      "runtimeerror",
+      "src_joblytics_infrastructure_http_scraping_errors",
+      "src_joblytics_infrastructure_http_scraping_errors_py_httpurl",
+      "src_joblytics_infrastructure_http_scraping_errors_scrapeclienterror",
+      "src_joblytics_infrastructure_http_scraping_errors_scrapeclienterror_init",
+      "src_joblytics_infrastructure_http_scraping_http_client_py_httpurl",
+      "src_joblytics_infrastructure_http_scraping_http_client_py_response",
+      "src_joblytics_infrastructure_http_scraping_http_client_rationale_103",
+      "src_joblytics_infrastructure_http_scraping_http_client_rationale_64",
+      "src_joblytics_infrastructure_http_scraping_http_client_rationale_80",
+      "src_joblytics_infrastructure_http_scraping_http_client_scrapeclient_get_backoff_sleep",
+      "src_joblytics_infrastructure_http_scraping_http_client_scrapeclient_throttle",
+      "src_joblytics_infrastructure_http_scraping_http_client_scrapeclient_web_page_search"
+    ],
+    "6": [
+      "src_joblytics_domain_entities_job_offer",
+      "src_joblytics_domain_entities_job_offer_contracttype",
+      "src_joblytics_domain_entities_job_offer_jobofferbase",
+      "src_joblytics_domain_entities_job_offer_jobofferbase_internal_id",
+      "src_joblytics_domain_entities_job_offer_normalizedjoboffer",
+      "src_joblytics_domain_entities_job_offer_py_basemodel",
+      "src_joblytics_domain_entities_job_offer_py_enum",
+      "src_joblytics_domain_entities_job_offer_py_str",
+      "src_joblytics_domain_entities_job_offer_rationale_40",
+      "src_joblytics_domain_entities_job_offer_rationale_66",
+      "src_joblytics_domain_entities_job_offer_seniority",
+      "src_joblytics_domain_entities_job_offer_workmodality"
+    ],
+    "7": [
+      "src_joblytics_pipelines_linkedin_client_linkedinclient",
+      "src_joblytics_pipelines_linkedin_client_linkedinclient_build_detail_url",
+      "src_joblytics_pipelines_linkedin_client_linkedinclient_build_search_url",
+      "src_joblytics_pipelines_linkedin_client_linkedinclient_init",
+      "src_joblytics_pipelines_linkedin_client_linkedinclient_request",
+      "src_joblytics_pipelines_linkedin_client_py_httpurl",
+      "src_joblytics_pipelines_linkedin_client_py_response",
+      "src_joblytics_pipelines_linkedin_client_rationale_33",
+      "src_joblytics_pipelines_linkedin_client_rationale_76",
+      "src_joblytics_pipelines_linkedin_client_rationale_88"
+    ],
+    "8": [
+      "exception",
+      "src_joblytics_domain_exceptions_errors",
+      "src_joblytics_domain_exceptions_errors_domainerror",
+      "src_joblytics_domain_exceptions_errors_nooffersfounderror",
+      "src_joblytics_domain_exceptions_errors_nooffersfounderror_init",
+      "src_joblytics_domain_exceptions_errors_py_httpurl",
+      "src_joblytics_domain_exceptions_errors_rationale_5"
+    ],
+    "9": [
+      "src_joblytics_core_utils_cli",
+      "src_joblytics_core_utils_cli_py_any",
+      "src_joblytics_core_utils_cli_rationale_13",
+      "src_joblytics_core_utils_cli_rationale_39",
+      "src_joblytics_core_utils_cli_render_table",
+      "src_joblytics_core_utils_cli_truncate"
+    ],
+    "10": [
+      "src_joblytics_infrastructure_http_scraping_headers_py_httpurl",
+      "src_joblytics_infrastructure_http_scraping_headers_randomheaderprovider_header",
+      "src_joblytics_infrastructure_http_scraping_headers_rationale_63"
+    ],
+    "11": [
+      "pkg_joblytics"
+    ],
+    "12": [
+      "src_joblytics_core_config_init"
+    ],
+    "13": [
+      "src_joblytics_core_utils_init"
+    ],
+    "14": [
+      "src_joblytics_domain_entities_init"
+    ],
+    "15": [
+      "src_joblytics_domain_exceptions_init"
+    ],
+    "16": [
+      "src_joblytics_domain_init"
+    ],
+    "17": [
+      "src_joblytics_infrastructure_http_init"
+    ],
+    "18": [
+      "src_joblytics_infrastructure_http_scraping_init"
+    ],
+    "19": [
+      "src_joblytics_infrastructure_init"
+    ],
+    "20": [
+      "src_joblytics_init"
+    ],
+    "21": [
+      "src_joblytics_pipelines_init"
+    ],
+    "22": [
+      "src_joblytics_pipelines_linkedin_init"
+    ],
+    "23": [
+      "src_joblytics_services_init"
+    ],
+    "24": [
+      "tests_init"
+    ],
+    "25": [
+      "tests_integration_init"
+    ],
+    "26": [
+      "tests_unit_core_init"
+    ],
+    "27": [
+      "tests_unit_infrastructure_init"
+    ],
+    "28": [
+      "tests_unit_init"
+    ]
+  },
+  "cohesion": {
+    "0": 0.08235294117647059,
+    "1": 0.1748768472906404,
+    "2": 0.13768115942028986,
+    "3": 0.12380952380952381,
+    "4": 0.24358974358974358,
+    "5": 0.15384615384615385,
+    "6": 0.25757575757575757,
+    "7": 0.26666666666666666,
+    "8": 0.3333333333333333,
+    "9": 0.4666666666666667,
+    "10": 0.6666666666666666,
+    "11": 1.0,
+    "12": 1.0,
+    "13": 1.0,
+    "14": 1.0,
+    "15": 1.0,
+    "16": 1.0,
+    "17": 1.0,
+    "18": 1.0,
+    "19": 1.0,
+    "20": 1.0,
+    "21": 1.0,
+    "22": 1.0,
+    "23": 1.0,
+    "24": 1.0,
+    "25": 1.0,
+    "26": 1.0,
+    "27": 1.0,
+    "28": 1.0
+  },
+  "gods": [
+    {
+      "id": "src_joblytics_infrastructure_http_scraping_policies_policy_httppolicy",
+      "label": "HttpPolicy",
+      "degree": 21
+    },
+    {
+      "id": "src_joblytics_infrastructure_http_scraping_http_client_scrapeclient",
+      "label": "ScrapeClient",
+      "degree": 19
+    },
+    {
+      "id": "src_joblytics_pipelines_linkedin_models_linkedinconfig",
+      "label": "LinkedInConfig",
+      "degree": 12
+    },
+    {
+      "id": "src_joblytics_core_config_settings_settings",
+      "label": "Settings",
+      "degree": 11
+    },
+    {
+      "id": "src_joblytics_infrastructure_http_scraping_headers_randomheaderprovider",
+      "label": "RandomHeaderProvider",
+      "degree": 11
+    },
+    {
+      "id": "tests_unit_infrastructure_http_scraping_test_http_client_dummyheaderprovider",
+      "label": "DummyHeaderProvider",
+      "degree": 11
+    },
+    {
+      "id": "src_joblytics_core_config_settings_get_settings",
+      "label": "get_settings()",
+      "degree": 10
+    },
+    {
+      "id": "src_joblytics_pipelines_linkedin_client_linkedinclient",
+      "label": "LinkedInClient",
+      "degree": 10
+    },
+    {
+      "id": "src_joblytics_pipelines_linkedin_parser_linkedinparser",
+      "label": "LinkedInParser",
+      "degree": 10
+    },
+    {
+      "id": "src_joblytics_infrastructure_http_scraping_policies_policy_policyresolver",
+      "label": "PolicyResolver",
+      "degree": 9
+    }
+  ],
+  "surprises": [
+    {
+      "source": "test_web_page_last_attempt_retryable_raises_scrape_client_error()",
+      "target": "ScrapeClientError",
+      "source_files": [
+        "tests/unit/infrastructure/http/scraping/test_http_client.py",
+        "src/joblytics/infrastructure/http/scraping/errors.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "indirect_call",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "DummyHeaderProvider",
+      "target": "HttpPolicy",
+      "source_files": [
+        "tests/unit/infrastructure/http/scraping/test_http_client.py",
+        "src/joblytics/infrastructure/http/scraping/policies/policy.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "test_compute_log_file_verbose()",
+      "target": "compute_log_file()",
+      "source_files": [
+        "tests/unit/core/test_settings.py",
+        "src/joblytics/core/config/logger.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories"
+    },
+    {
+      "source": "settings()",
+      "target": "get_settings()",
+      "source_files": [
+        "tests/unit/core/test_settings.py",
+        "src/joblytics/core/config/settings.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories"
+    },
+    {
+      "source": "test_compute_log_file_verbose()",
+      "target": "get_settings()",
+      "source_files": [
+        "tests/unit/core/test_settings.py",
+        "src/joblytics/core/config/settings.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "calls",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories"
+    }
+  ],
+  "tokens": {
+    "input": 0,
+    "output": 0
+  }
+}

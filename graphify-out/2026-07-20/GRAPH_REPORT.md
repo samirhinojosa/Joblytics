@@ -1,11 +1,11 @@
 # Graph Report - Joblytics  (2026-07-20)
 
 ## Corpus Check
-- 55 files · ~11,508 words
+- 55 files · ~11,159 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 350 nodes · 603 edges · 37 communities (34 shown, 3 thin omitted)
+- 347 nodes · 600 edges · 36 communities (33 shown, 3 thin omitted)
 - Extraction: 82% EXTRACTED · 18% INFERRED · 0% AMBIGUOUS · INFERRED: 108 edges (avg confidence: 0.69)
 - Token cost: 0 input · 0 output
 
@@ -30,7 +30,6 @@
 - 🧑‍💻 Command Line Interface (Typer)
 - CLAUDE.md
 - README.md
-- _config
 
 ## God Nodes (most connected - your core abstractions)
 1. `HttpPolicy` - 27 edges
@@ -59,11 +58,11 @@
 ## Import Cycles
 - None detected.
 
-## Communities (37 total, 3 thin omitted)
+## Communities (36 total, 3 thin omitted)
 
 ### Community 0 - "LinkedInConfig"
-Cohesion: 0.09
-Nodes (23): LinkedInClient, HttpUrl, Response, Builds the LinkedIn job search URL for both initial search and pagination, Constructs the URL to fetch the full details of a specific job offer.          A, Executes a network request to a specific LinkedIn URL.          This method acts, LinkedInConfig, BaseModel (+15 more)
+Cohesion: 0.08
+Nodes (30): LinkedInClient, HttpUrl, Response, Builds the LinkedIn job search URL for both initial search and pagination, Constructs the URL to fetch the full details of a specific job offer.          A, Executes a network request to a specific LinkedIn URL.          This method acts, LinkedInConfig, BaseModel (+22 more)
 
 ### Community 1 - "HttpPolicy"
 Cohesion: 0.13
@@ -90,8 +89,8 @@ Cohesion: 0.26
 Nodes (10): ContractType, JobOfferBase, NormalizedJobOffer, BaseModel, Enum, str, Canonical job offer entity (provider-agnostic).      Providers must normalize th, Unique internal ID to avoid duplicates in the database. (+2 more)
 
 ### Community 7 - "Joblytics"
-Cohesion: 0.05
-Nodes (37): 🤖 AI-Assisted Development & Architecture Enforcement, 🔹 Built-in safety mechanisms, 🧑‍💻 Command Line Interface (Typer), 🚀 Common database (Docker) commands, 🐘 Database setup (PostgreSQL), Debug mode, Default behavior (no table), Default production log path (+29 more)
+Cohesion: 0.06
+Nodes (34): 🔹 Built-in safety mechanisms, 🧑‍💻 Command Line Interface (Typer), 🚀 Common database (Docker) commands, 🐘 Database setup (PostgreSQL), Debug mode, Default behavior (no table), Default production log path, ✅ Development mode (main + dev dependencies) (+26 more)
 
 ### Community 8 - "NoOffersFoundError"
 Cohesion: 0.17
@@ -102,19 +101,15 @@ Cohesion: 0.24
 Nodes (11): Any, Truncate a value for safe console display.      Converts any value to string and, Render a formatted table for console (CLI) output.      This function is respons, render_table(), truncate(), test_render_table_drops_and_truncates_columns(), test_render_table_no_rows_returns_message(), test_render_table_uses_str_for_columns_without_limit() (+3 more)
 
 ### Community 23 - "🧑‍💻 Command Line Interface (Typer)"
-Cohesion: 0.23
-Nodes (14): linkedIn_scrapper(), main(), WorkModality, CLI of project utilities., Extracts job postings from LinkedIn and displays a summary table in the console., LinkedInPipeline, _no_op_logging(), MonkeyPatch (+6 more)
+Cohesion: 0.20
+Nodes (15): linkedIn_scrapper(), main(), WorkModality, CLI of project utilities., Extracts job postings from LinkedIn and displays a summary table in the console., LinkedInPipeline, Executes the full LinkedIn scraping lifecycle: search, discovery, and enrichment, _no_op_logging() (+7 more)
 
 ### Community 29 - "CLAUDE.md"
 Cohesion: 0.22
 Nodes (8): Architecture Mapping, Coding Standards (dbt & Snowflake), Coding Standards & Pre-commit Rules, dbt (Transformation), Golden Rules, Joblytics (Ingestion), Role, Terminal & Execution Commands
 
-### Community 36 - "_config"
-Cohesion: 0.39
-Nodes (8): _config(), WorkModality, test_defaults(), test_forbids_unknown_fields(), test_rejects_distance_out_of_range(), test_strips_whitespace_from_title_and_location(), test_time_posted_value_maps_every_member(), test_work_modality_value_maps_every_member()
-
 ## Knowledge Gaps
-- **38 isolated node(s):** `joblytics`, `Role`, `Joblytics (Ingestion)`, `dbt (Transformation)`, `Coding Standards & Pre-commit Rules` (+33 more)
+- **36 isolated node(s):** `joblytics`, `Role`, `Joblytics (Ingestion)`, `dbt (Transformation)`, `Coding Standards & Pre-commit Rules` (+31 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -122,11 +117,11 @@ Nodes (8): _config(), WorkModality, test_defaults(), test_forbids_unknown_fields
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `ScrapeClient` connect `HttpPolicy` to `LinkedInConfig`, `get_settings`, `.web_page_search`?**
-  _High betweenness centrality (0.284) - this node is a cross-community bridge._
+  _High betweenness centrality (0.289) - this node is a cross-community bridge._
 - **Why does `LinkedInClient` connect `LinkedInConfig` to `HttpPolicy`, `🧑‍💻 Command Line Interface (Typer)`?**
-  _High betweenness centrality (0.275) - this node is a cross-community bridge._
+  _High betweenness centrality (0.280) - this node is a cross-community bridge._
 - **Why does `LinkedInPipeline` connect `🧑‍💻 Command Line Interface (Typer)` to `LinkedInConfig`, `NoOffersFoundError`, `Settings`, `RawJobOffer`?**
-  _High betweenness centrality (0.232) - this node is a cross-community bridge._
+  _High betweenness centrality (0.236) - this node is a cross-community bridge._
 - **Are the 9 inferred relationships involving `HttpPolicy` (e.g. with `LogLevel` and `RuntimeSettings`) actually correct?**
   _`HttpPolicy` has 9 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 18 inferred relationships involving `ScrapeClient` (e.g. with `HttpPolicy` and `RandomHeaderProvider`) actually correct?**
