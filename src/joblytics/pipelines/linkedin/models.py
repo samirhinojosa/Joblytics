@@ -1,21 +1,8 @@
 from __future__ import annotations
-from enum import Enum
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Annotated
 
-
-class TimePosted(str, Enum):
-    ALL = "all"
-    DAY = "day"
-    WEEK = "week"
-    MONTH = "month"
-
-
-class WorkModality(str, Enum):
-    ALL = "all"
-    ONSITE = "onsite"
-    HYBRID = "hybrid"
-    REMOTE = "remote"
+from joblytics.pipelines.base import TimePosted, WorkModality
 
 
 class LinkedInConfig(BaseModel):

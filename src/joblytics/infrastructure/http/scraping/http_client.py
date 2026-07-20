@@ -9,7 +9,7 @@ from joblytics.infrastructure.http.scraping.headers import RandomHeaderProvider
 from joblytics.infrastructure.http.scraping.errors import (
     ScrapeClientError,
 )
-from joblytics.infrastructure.http.scraping.policies.policy import HttpPolicy
+from joblytics.core.config.policy import HttpPolicy
 
 logger = logging.getLogger("joblytics")
 

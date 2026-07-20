@@ -3,7 +3,7 @@ import logging
 from joblytics.core.config.settings import get_settings
 from joblytics.core.config.logger import setup_logging
 from joblytics.core.utils.cli import render_table
-from joblytics.pipelines.linkedin.models import TimePosted, WorkModality
+from joblytics.pipelines.base import TimePosted, WorkModality
 from joblytics.domain.exceptions.errors import NoOffersFoundError
 from joblytics.pipelines.linkedin.pipeline import LinkedInPipeline
 

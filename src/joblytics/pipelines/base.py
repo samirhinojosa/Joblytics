@@ -2,9 +2,27 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from enum import Enum
 from typing import Any
 from joblytics.domain.entities.job_offer import RawJobOffer
+
+
+# --- Shared orchestration contract (query filters) ---
+# Provider-agnostic search filters. Concrete pipelines (e.g. LinkedIn) map
+# these onto their own provider-specific query parameters.
+class TimePosted(str, Enum):
+    ALL = "all"
+    DAY = "day"
+    WEEK = "week"
+    MONTH = "month"
+
+
+class WorkModality(str, Enum):
+    ALL = "all"
+    ONSITE = "onsite"
+    HYBRID = "hybrid"
+    REMOTE = "remote"
 
 
 @dataclass(frozen=True)
@@ -18,7 +36,7 @@ class PipelineReport:
     errors: tuple[str, ...] = ()
 
     @property
-    def duration(self):
+    def duration(self) -> timedelta:
         return self.finished_at - self.started_at
 
     @property
@@ -42,8 +60,8 @@ class BaseJobPipeline(ABC):
         provider: str,
         title: str,
         location: str,
-        time_posted: Any,
-        work_modality: Any,
+        time_posted: TimePosted,
+        work_modality: WorkModality,
     ) -> None:
         self.provider = provider
         self.title = title
@@ -119,4 +137,5 @@ class BaseJobPipeline(ABC):
             )
 
             self._log_report(report)
-            return report
+
+        return report

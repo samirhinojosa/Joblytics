@@ -3,10 +3,7 @@ from pathlib import Path
 from typing import Any
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from joblytics.infrastructure.http.scraping.policies.policy import (
-    HttpPolicy,
-    PolicyResolver,
-)
+from joblytics.core.config.policy import HttpPolicy, PolicyResolver
 
 
 class LogLevel(str, Enum):
@@ -56,15 +53,8 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "pwd"
     POSTGRES_DB: str = "db"
 
-    ## User agents file
-    UA_FILE_PATH: Path = (
-        PACKAGE_ROOT
-        / "infrastructure"
-        / "http"
-        / "scraping"
-        / "assets"
-        / "user_agents.txt"
-    )
+    ## User agents file (optional override; infrastructure resolves its own default)
+    UA_FILE_PATH: Path | None = None
 
     # Loggin information
     LOG_LEVEL: LogLevel = LogLevel.INFO

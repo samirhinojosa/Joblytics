@@ -7,7 +7,7 @@ from pathlib import Path
 
 from joblytics.infrastructure.http.scraping.headers import RandomHeaderProvider
 from joblytics.infrastructure.http.scraping.http_client import ScrapeClient
-from joblytics.infrastructure.http.scraping.policies.policy import HttpPolicy
+from joblytics.core.config.policy import HttpPolicy
 
 
 @pytest.fixture
@@ -363,6 +363,29 @@ def ua_file_invalid(tmp_path: Path) -> Path:
     return p
 
 
+def test_header_provider_uses_settings_ua_file_path_override(
+    monkeypatch, valid_ua_file: Path
+) -> None:
+    class FakeSettings:
+        UA_FILE_PATH = valid_ua_file
+
+    monkeypatch.setattr(
+        "joblytics.core.config.settings.get_settings",
+        lambda: FakeSettings(),
+        raising=True,
+    )
+
+    provider = RandomHeaderProvider()
+    assert provider.user_agents() != []
+
+
+def test_header_provider_user_agents_returns_loaded_list(valid_ua_file: Path) -> None:
+    provider = RandomHeaderProvider(ua_file=valid_ua_file)
+    uas = provider.user_agents()
+    assert len(uas) == 1
+    assert uas[0].startswith("Mozilla/5.0")
+
+
 def test_missing_file_header_provider(tmp_path: Path) -> None:
     missing = tmp_path / "does_not_exist.txt"
     with pytest.raises(FileNotFoundError):
@@ -419,3 +442,141 @@ def test_header_linkedin_referer_logic_header_provider(
         assert "Referer" not in h
     else:
         assert h.get("Referer") == expected_referer
+
+
+def test_throttle_sleeps_based_on_rate_limit_and_jitter(
+    monkeypatch, valid_ua_file: Path
+) -> None:
+    _patch_settings(
+        monkeypatch,
+        provider="linkedin",
+        policy=HttpPolicy(
+            rate_limit_per_second=2.0,
+            jitter_seconds_min=0.5,
+            jitter_seconds_max=1.5,
+            max_retries=1,
+        ),
+    )
+
+    client = ScrapeClient(
+        provider="linkedin",
+        web_url=HttpUrl("http://example.com/jobs"),
+        header_provider=DummyHeaderProvider(ua_file=valid_ua_file),
+    )
+
+    monkeypatch.setattr(
+        "joblytics.infrastructure.http.scraping.http_client.random.uniform",
+        lambda a, b: 0.3,
+        raising=True,
+    )
+    sleeps: list[float] = []
+    monkeypatch.setattr(
+        "joblytics.infrastructure.http.scraping.http_client.time.sleep",
+        lambda s: sleeps.append(s),
+        raising=True,
+    )
+
+    client._throttle()
+
+    assert sleeps == [0.5 + 0.3]
+
+
+def test_throttle_noop_when_rate_limit_disabled(
+    monkeypatch, valid_ua_file: Path
+) -> None:
+    _patch_settings(
+        monkeypatch,
+        provider="linkedin",
+        policy=HttpPolicy(rate_limit_per_second=0.0, max_retries=1),
+    )
+
+    client = ScrapeClient(
+        provider="linkedin",
+        web_url=HttpUrl("http://example.com/jobs"),
+        header_provider=DummyHeaderProvider(ua_file=valid_ua_file),
+    )
+
+    sleeps: list[float] = []
+    monkeypatch.setattr(
+        "joblytics.infrastructure.http.scraping.http_client.time.sleep",
+        lambda s: sleeps.append(s),
+        raising=True,
+    )
+
+    client._throttle()
+
+    assert sleeps == []
+
+
+class _RealisticFakeResponse:
+    """Mimics real `requests.Response.raise_for_status`: only raises for 400-599."""
+
+    def __init__(self, status_code: int):
+        self.status_code = status_code
+        self.headers: dict = {}
+
+    @property
+    def ok(self) -> bool:
+        return 200 <= self.status_code < 400
+
+    def raise_for_status(self) -> None:
+        if 400 <= self.status_code < 600:
+            raise requests.HTTPError(f"HTTP {self.status_code}")
+
+
+def test_web_page_last_attempt_retryable_status_without_raise_returns_response(
+    monkeypatch, valid_ua_file: Path
+) -> None:
+    _patch_settings(
+        monkeypatch,
+        provider="linkedin",
+        policy=HttpPolicy(max_retries=1),
+    )
+
+    client = ScrapeClient(
+        provider="linkedin",
+        web_url=HttpUrl("http://example.com/jobs"),
+        header_provider=DummyHeaderProvider(ua_file=valid_ua_file),
+    )
+
+    # 999 is a retryable status (see RETRY_STATUSES) that real `requests`
+    # would NOT raise for, since it falls outside the 400-599 HTTPError range.
+    response = _RealisticFakeResponse(status_code=999)
+
+    def fake_get(self, url, headers=None, timeout=None):
+        return response
+
+    bound = types.MethodType(fake_get, client._session)
+    monkeypatch.setattr(client._session, "get", bound)
+
+    result = client.web_page_search()
+    assert result is response
+
+
+def test_web_page_non_retryable_status_without_raise_returns_response(
+    monkeypatch, valid_ua_file: Path
+) -> None:
+    _patch_settings(
+        monkeypatch,
+        provider="linkedin",
+        policy=HttpPolicy(max_retries=1),
+    )
+
+    client = ScrapeClient(
+        provider="linkedin",
+        web_url=HttpUrl("http://example.com/jobs"),
+        header_provider=DummyHeaderProvider(ua_file=valid_ua_file),
+    )
+
+    # 100 is neither `ok` nor a retryable status, and real `requests` would
+    # not raise for it either (outside the 400-599 HTTPError range).
+    response = _RealisticFakeResponse(status_code=100)
+
+    def fake_get(self, url, headers=None, timeout=None):
+        return response
+
+    bound = types.MethodType(fake_get, client._session)
+    monkeypatch.setattr(client._session, "get", bound)
+
+    result = client.web_page_search()
+    assert result is response
