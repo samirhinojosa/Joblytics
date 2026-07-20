@@ -10,17 +10,17 @@
     "semantic_hash": "0063cea9e2c3d43e2b5150d2c23b7929"
   },
   "dbt_project/models/example/my_first_dbt_model.sql": {
-    "mtime": 1783603660.0091536,
+    "mtime": 1784557077.5789454,
     "ast_hash": "1ef331f8df52e75d870508e63e966159",
     "semantic_hash": "1ef331f8df52e75d870508e63e966159"
   },
   "dbt_project/models/example/my_second_dbt_model.sql": {
-    "mtime": 1783603660.0091536,
+    "mtime": 1784557077.582612,
     "ast_hash": "b74fa34d8b723a67716b3242002bcb92",
     "semantic_hash": "b74fa34d8b723a67716b3242002bcb92"
   },
   "pyproject.toml": {
-    "mtime": 1784555392.7855594,
+    "mtime": 1784557077.6009455,
     "ast_hash": "a1cdca67808aab255a46ca3c3eaee6ac",
     "semantic_hash": ""
   },
@@ -30,7 +30,7 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "src/joblytics/cli.py": {
-    "mtime": 1784552795.1255007,
+    "mtime": 1784557077.6009455,
     "ast_hash": "b9eadaa397630db7f2c5e57d05f2d12c",
     "semantic_hash": ""
   },
@@ -45,7 +45,7 @@
     "semantic_hash": "a9ca7ddc0999dc617e46f2ef653cfd62"
   },
   "src/joblytics/core/config/settings.py": {
-    "mtime": 1784552356.533668,
+    "mtime": 1784557077.6009455,
     "ast_hash": "ea36614a62e03e77853eac7c3396e322",
     "semantic_hash": ""
   },
@@ -80,7 +80,7 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "src/joblytics/domain/exceptions/errors.py": {
-    "mtime": 1784551872.6436055,
+    "mtime": 1784557077.6009455,
     "ast_hash": "9c225651e0adf70c3305cd0377337589",
     "semantic_hash": ""
   },
@@ -105,12 +105,12 @@
     "semantic_hash": "d9059e7bdb0d6bd24dccb8609a597d6c"
   },
   "src/joblytics/infrastructure/http/scraping/headers.py": {
-    "mtime": 1784552414.1641097,
+    "mtime": 1784557077.604612,
     "ast_hash": "bc40c3456169363d60f35a33d7c22483",
     "semantic_hash": ""
   },
   "src/joblytics/infrastructure/http/scraping/http_client.py": {
-    "mtime": 1784552380.6714168,
+    "mtime": 1784557077.604612,
     "ast_hash": "324da81c54283e9eb56e37fc88dc06f0",
     "semantic_hash": ""
   },
@@ -120,7 +120,7 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "src/joblytics/pipelines/base.py": {
-    "mtime": 1784554331.7551339,
+    "mtime": 1784557077.604612,
     "ast_hash": "2c08950d995b916c8dd9d8928ee725db",
     "semantic_hash": ""
   },
@@ -130,7 +130,7 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "src/joblytics/pipelines/linkedin/client.py": {
-    "mtime": 1784555001.0491066,
+    "mtime": 1784557077.604612,
     "ast_hash": "18505ca08340706765d21965b8a2f501",
     "semantic_hash": ""
   },
@@ -140,17 +140,17 @@
     "semantic_hash": "cbf2cc4d441c270730da6cb4247152f3"
   },
   "src/joblytics/pipelines/linkedin/models.py": {
-    "mtime": 1784552714.3016622,
+    "mtime": 1784557077.604612,
     "ast_hash": "79c05f221c0a35bcd4af570820b970f9",
     "semantic_hash": ""
   },
   "src/joblytics/pipelines/linkedin/parser.py": {
-    "mtime": 1784555037.5736756,
+    "mtime": 1784557077.6082788,
     "ast_hash": "7249fde0c77efa6eeac2fcd5d6471ad4",
     "semantic_hash": ""
   },
   "src/joblytics/pipelines/linkedin/pipeline.py": {
-    "mtime": 1784555050.3813448,
+    "mtime": 1784557077.6082788,
     "ast_hash": "92c92ad43f53375ce2a30c02e77fc523",
     "semantic_hash": ""
   },
@@ -185,37 +185,37 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "tests/unit/infrastructure/http/scraping/test_http_client.py": {
-    "mtime": 1784554877.7557907,
+    "mtime": 1784557077.6119454,
     "ast_hash": "c915f839c5fe0ca4853443782876d062",
     "semantic_hash": ""
   },
   "src/joblytics/core/config/policy.py": {
-    "mtime": 1784552295.2486098,
+    "mtime": 1784557077.6009455,
     "ast_hash": "d3eaad6d79dc54276a1736e7f38c75f5",
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1784551880.5196068,
+    "mtime": 1784557077.5752788,
     "ast_hash": "96778d6235290780d82a083bcead723a",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1784556869.6631534,
+    "mtime": 1784557199.7235286,
     "ast_hash": "0b035e6650e8501838ffc592e92f111e",
     "semantic_hash": ""
   },
   "dbt_project/README.md": {
-    "mtime": 1783603660.0051646,
+    "mtime": 1784557077.5752788,
     "ast_hash": "05dfe8373039c15db9d3d30974b32477",
     "semantic_hash": ""
   },
   "dbt_project/dbt_project.yml": {
-    "mtime": 1783603820.5301862,
+    "mtime": 1784557077.5789454,
     "ast_hash": "c31b9f3cf7ef1790f78995bde8cf231d",
     "semantic_hash": ""
   },
   "dbt_project/models/example/schema.yml": {
-    "mtime": 1783603660.0091536,
+    "mtime": 1784557077.582612,
     "ast_hash": "e8385a4d1f64d755a1967f1894ad323c",
     "semantic_hash": ""
   },
@@ -230,67 +230,67 @@
     "semantic_hash": ""
   },
   "tests/unit/core/test_policy.py": {
-    "mtime": 1784554825.6195135,
+    "mtime": 1784557077.6082788,
     "ast_hash": "8683faa8916421dcfb14c3bc326cfe38",
     "semantic_hash": ""
   },
   "tests/unit/core/test_utils_cli.py": {
-    "mtime": 1784555000.117773,
+    "mtime": 1784557077.6082788,
     "ast_hash": "9c221f48552212655bde815f924278ad",
     "semantic_hash": ""
   },
   "tests/unit/domain/__init__.py": {
-    "mtime": 1784553697.5762625,
+    "mtime": 1784557077.6119454,
     "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
     "semantic_hash": ""
   },
   "tests/unit/domain/test_errors.py": {
-    "mtime": 1784555062.0835977,
+    "mtime": 1784557077.6119454,
     "ast_hash": "52813883d3e20e20e64888bc3aa2d47c",
     "semantic_hash": ""
   },
   "tests/unit/domain/test_job_offer.py": {
-    "mtime": 1784555077.5905428,
+    "mtime": 1784557077.6119454,
     "ast_hash": "f99ff8fed8a05e06bdad8d6a4c32ebdf",
     "semantic_hash": ""
   },
   "tests/unit/pipelines/__init__.py": {
-    "mtime": 1784553697.579929,
+    "mtime": 1784557077.6119454,
     "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
     "semantic_hash": ""
   },
   "tests/unit/pipelines/linkedin/__init__.py": {
-    "mtime": 1784553697.5835958,
+    "mtime": 1784557077.615612,
     "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
     "semantic_hash": ""
   },
   "tests/unit/pipelines/linkedin/test_client.py": {
-    "mtime": 1784554488.5216181,
+    "mtime": 1784557077.615612,
     "ast_hash": "b45cc197444a8e44591ab03d58aace3e",
     "semantic_hash": ""
   },
   "tests/unit/pipelines/linkedin/test_models.py": {
-    "mtime": 1784555123.637743,
+    "mtime": 1784557077.615612,
     "ast_hash": "b4bb17f60062125ab732101af518141f",
     "semantic_hash": ""
   },
   "tests/unit/pipelines/linkedin/test_parser.py": {
-    "mtime": 1784555000.1214397,
+    "mtime": 1784557077.615612,
     "ast_hash": "54038f82756c09ff43719c7d8e1b00cd",
     "semantic_hash": ""
   },
   "tests/unit/pipelines/linkedin/test_pipeline.py": {
-    "mtime": 1784555141.942511,
+    "mtime": 1784557077.615612,
     "ast_hash": "f12935b7dd17dabfb4abacfff137bbe0",
     "semantic_hash": ""
   },
   "tests/unit/pipelines/test_base.py": {
-    "mtime": 1784555093.6872125,
+    "mtime": 1784557077.615612,
     "ast_hash": "fc27ab1801d5cc752455fd69b11f155c",
     "semantic_hash": ""
   },
   "tests/unit/test_cli.py": {
-    "mtime": 1784554662.0062034,
+    "mtime": 1784557077.615612,
     "ast_hash": "97bb71cd9fff2414b5426c36b13e66af",
     "semantic_hash": ""
   }
