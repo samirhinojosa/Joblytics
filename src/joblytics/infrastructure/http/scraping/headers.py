@@ -24,12 +24,16 @@ class RandomHeaderProvider(BaseModel):
         if self.ua_file:
             p = Path(self.ua_file).expanduser().resolve()
         else:
-            ## Fetching UA file path from settings (dependencies)
+            ## Fetching UA file path override from settings, if any
 
             from joblytics.core.config.settings import get_settings
 
             settings = get_settings()
-            p = Path(settings.UA_FILE_PATH).expanduser().resolve()
+            if settings.UA_FILE_PATH is not None:
+                p = Path(settings.UA_FILE_PATH).expanduser().resolve()
+            else:
+                # Default: asset shipped alongside this module
+                p = (Path(__file__).parent / "assets" / "user_agents.txt").resolve()
 
         if not p.exists():
             raise FileNotFoundError(f"UAs file not found: {p} (cwd={Path.cwd()})")

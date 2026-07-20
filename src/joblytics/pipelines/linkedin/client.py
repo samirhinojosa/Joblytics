@@ -1,8 +1,6 @@
 from urllib.parse import urlencode, quote_plus
 from pydantic import HttpUrl
 from typing import Any
-import time
-import random
 import logging
 import requests
 from .models import LinkedInConfig

@@ -3,7 +3,7 @@ Act as an Expert Data Engineer specializing in Python 3.12+ (Web Scraping, Clean
 
 # Architecture Mapping
 ## Joblytics (Ingestion)
-- `src/joblytics/domain/`: Pure business rules, entities, and exceptions. ZERO external dependencies.
+- `src/joblytics/domain/`: Pure business rules, entities, and exceptions. Zero infrastructure dependencies; Pydantic permitted for validation models.
 - `src/joblytics/infrastructure/`: Technical implementations, HTTP clients, scraping logic, and staging integrations (S3/Snowflake). Local PostgreSQL is currently out of scope.
 - `src/joblytics/pipelines/`: Orchestration logic for scraping, parsing, and data normalization.
 - `src/joblytics/core/`: Global foundations, 12-Factor config, logging, and environment management.
@@ -53,14 +53,6 @@ Always use `make` and `poetry` for environment tasks.
 - `dbt build -s <model_name>`: Run and test a specific model and its upstream/downstream dependencies.
 - `dbt test`: Execute all data quality tests.
 
-# Custom Skills Organization
-Custom tools and scripts to aid development are located in `.claude/skills/`:
-- `.claude/skills/architecture/`: Scripts validating Clean Architecture dependency rules (ensuring domain purity).
-- `.claude/skills/scraping/`: Tools verifying the implementation of rate-limiting, user-agent rotation, and exponential backoff.
-- `.claude/skills/data_contracts/`: Schema validation ensuring JSON/CSV outputs are ready for Snowflake/dbt staging.
-- `.claude/skills/dbt_validation/`: Ensures dbt models follow CTE best practices and have corresponding YAML documentation.
-- Community tools (e.g., `caveman`, `caveman-commit`) are also available in this structure. Reference these skills automatically.
-Reference these skills automatically when performing related tasks.
 
 # Golden Rules
 - Never give long theoretical explanations; limit yourself to generating, debugging, and executing functional code.

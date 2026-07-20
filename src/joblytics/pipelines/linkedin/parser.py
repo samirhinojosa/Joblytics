@@ -11,7 +11,7 @@ class LinkedInParser:
     Does not perform network requests.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.logger = logging.getLogger("joblytics")
 
     @staticmethod

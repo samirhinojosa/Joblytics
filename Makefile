@@ -98,6 +98,9 @@ marimo: ## Run marimo on a given notebook: NB=my_experiment (will open notebooks
 jupyterlab: ## Run Jupyter Lab on root
 	@$(POETRY) run jupyter lab $(NOTEBOOKS_DIR)
 
+graphify-update: ## Rebuild and update the Graphify static analysis architecture map
+	@$(POETRY) run graphify update . --force
+
 fmt: ## Format code (Ruff formatter) and apply safe lint autofixes
 	@$(POETRY) run ruff format $(SRC)
 	@$(POETRY) run ruff check --fix $(SRC)

@@ -113,7 +113,7 @@ class LinkedInPipeline(BaseJobPipeline):
         done = 0  # shared counter
 
         # Get details (Parallel enrichment)
-        def _enrich_job(summary_data: dict[str, Any]):
+        def _enrich_job(summary_data: dict[str, Any]) -> None:
             nonlocal done
 
             try:

@@ -24,7 +24,7 @@ class NoOffersFoundError(DomainError):
 
         super().__init__(
             f"No offers were found (0 results) for "
-            f'title="{title}", location="{location}", distance={distance}, '
+            f'title="{title}", location="{location}", '
             f"time posted={time_posted}, remote mode={work_modality}"
             + (f". URL: {url}" if url else "")
         )
