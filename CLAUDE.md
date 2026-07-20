@@ -53,14 +53,6 @@ Always use `make` and `poetry` for environment tasks.
 - `dbt build -s <model_name>`: Run and test a specific model and its upstream/downstream dependencies.
 - `dbt test`: Execute all data quality tests.
 
-# Custom Skills Organization
-Custom tools and scripts to aid development are located in `.claude/skills/`:
-- `.claude/skills/architecture/`: Scripts validating Clean Architecture dependency rules (ensuring domain purity).
-- `.claude/skills/scraping/`: Tools verifying the implementation of rate-limiting, user-agent rotation, and exponential backoff.
-- `.claude/skills/data_contracts/`: Schema validation ensuring JSON/CSV outputs are ready for Snowflake/dbt staging.
-- `.claude/skills/dbt_validation/`: Ensures dbt models follow CTE best practices and have corresponding YAML documentation.
-- Community tools (e.g., `caveman`, `caveman-commit`) are also available in this structure. Reference these skills automatically.
-Reference these skills automatically when performing related tasks.
 
 # Golden Rules
 - Never give long theoretical explanations; limit yourself to generating, debugging, and executing functional code.
