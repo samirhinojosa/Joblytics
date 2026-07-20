@@ -171,6 +171,7 @@ To execute: `make Command`
 
 | Command                   | Description                                                                   |
 | --------------------------| ------------------------------------------------------------------------------|
+| `graphify-update`         | Rebuild and update the Graphify static analysis architecture map              |
 | `check-imports`           | Ensure package import works and src.* imports are not required                |
 | `check-no-src-imports`    | ail if code imports from src.joblytics                                        |
 | `clean-all`               | Remove all caches and .venv                                                   |
@@ -186,10 +187,15 @@ To execute: `make Command`
 
 ## 📂 Project Structure (overview)
     .
+    ├── dbt_project/                    # dbt Core models, macros, and seeds for Snowflake analytics
+    │   ├── models/                     # Staging, intermediate, and marts transformation layers
+    │   ├── dbt_project.yml             # dbt project configuration
+    │   └── profiles.yml                # Warehouse profiles (Snowflake targets)
+    │
     ├── src
     │   ├── joblytics
     │   │   ├── core                    # Central application configuration
-    │   │   │   ├── config              # Settings, environment, logging
+    │   │   │   ├── config              # Settings, environment, logging and infrastructure policies (HttpPolicy/PolicyResolver)
     │   │   │   └── utils               # Cross-cutting helpers
     │   │   │
     │   │   ├── domain                  # Business rules, domain models, invariants
@@ -202,10 +208,8 @@ To execute: `make Command`
     │   │   │   └── repositories        # Concrete implementations of data access (DB, cache, etc.)
     │   │   │
     │   │   ├── pipelines               # Provider-specific data pipelines (scraping + parsing + normalization)
-    │   │   │   ├── base.py
+    │   │   │   ├── base.py             # Shared pipeline contracts and core enums (WorkModality/TimePosted)
     │   │   │   └── linkedin
-    │   │   │
-    │   │   ├── services                # Integrations with external services/APIs (e.g., ML, third-party APIs)
     │   │   │
     │   └── └── cli.py                  # Typer-based CLI entrypoint for scraping workflows (start here)
     │
@@ -240,6 +244,36 @@ You can open the Jupyter Lab environment as follows:
 ```bash
 make jupyterlab
 ```
+
+## 🤖 AI-Assisted Development & Architecture Enforcement
+
+Joblytics is optimized for AI-assisted engineering. It couples static code-graph visualization with strict architectural guardrails, enabling agents (like Claude Code) to operate with maximum context efficiency and near-zero token waste.
+
+### 🛠 Integrated Tooling
+*   **Graphify:** Performs continuous static analysis across Python and dbt files, mapping architectural boundaries, nodes, and dependency layers without incurring LLM costs.
+*   **Agent Skills:** Provides pre-compiled automated context hooks that minimize prompt overhead in the terminal sandbox.
+*   **Architecture Enforcement (`CLAUDE.md`):** Enforces a strict unidirectional dependency rule: `Core/Domain → Infrastructure`. Infrastructure dependencies inside the `domain/` directory are blocked at the environment level.
+
+### 🔄 The Token-Saving Development Lifecycle
+To maintain context integrity and avoid context window pollution (which drastically reduces token costs), always follow this deterministic 5-step lifecycle when changing tasks or prompts with Claude Code:
+```
+[1. Code] -> [2. make quality] -> [3. Commit] -> [4. Graph Update] -> [5. exit]
+```
+
+1.  **Execute Changes:** Perform your atomic refactoring, feature implementation, or bug fix.
+2.  **Verify Integrity:** Run the full quality control suite to guarantee type safety and code coverage:
+    ```bash
+    make quality
+    ```
+3.  **Commit Permanence:** Consolidate your progress with a clean, descriptive Git commit message.
+4.  **Rebuild the Code Graph:** Synchronize the structural changes with Graphify so the AI workspace reflects the exact current state of the architecture:
+    ```bash
+    make graphify-update
+    ```
+5.  **Flush Agent Memory (`exit`):** Type `exit` or `quit` to close the active Claude Code session.
+
+> ⚠️ **Crucial Rule:** Never carry context from a finished task into a new, unrelated query. Exiting the chat clears out stale intermediate traces, execution errors, and redundant file readings. When you launch a fresh `claude` instance, the agent starts with 0% memory overhead—consuming up to 80% fewer tokens and strictly operating on the updated code graph map.
+
 
 ## ⚖️ Responsible Use & Platform Compliance
 
