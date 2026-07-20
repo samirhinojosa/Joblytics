@@ -3,7 +3,7 @@ Act as an Expert Data Engineer specializing in Python 3.12+ (Web Scraping, Clean
 
 # Architecture Mapping
 ## Joblytics (Ingestion)
-- `src/joblytics/domain/`: Pure business rules, entities, and exceptions. ZERO external dependencies.
+- `src/joblytics/domain/`: Pure business rules, entities, and exceptions. Zero infrastructure dependencies; Pydantic permitted for validation models.
 - `src/joblytics/infrastructure/`: Technical implementations, HTTP clients, scraping logic, and staging integrations (S3/Snowflake). Local PostgreSQL is currently out of scope.
 - `src/joblytics/pipelines/`: Orchestration logic for scraping, parsing, and data normalization.
 - `src/joblytics/core/`: Global foundations, 12-Factor config, logging, and environment management.
