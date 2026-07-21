@@ -129,6 +129,8 @@ class LinkedInPipeline(BaseJobPipeline):
                         "provider": self.provider,
                         "search_title": self.title,
                         "search_location": self.location,
+                        "search_work_modality": self.work_modality.value,
+                        "search_time_posted": self.time_posted.value,
                     }
 
                     offer = RawJobOffer(**full_data)

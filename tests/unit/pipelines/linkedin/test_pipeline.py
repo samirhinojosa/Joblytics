@@ -136,6 +136,8 @@ def test_extract_jobs_returns_enriched_offers(monkeypatch: pytest.MonkeyPatch) -
         assert offer.provider == "linkedin"
         assert offer.search_title == "Data Engineer"
         assert offer.search_location == "Paris"
+        assert offer.search_work_modality == "remote"
+        assert offer.search_time_posted == "day"
     descriptions = {o.provider_job_id: o.description for o in offers}
     assert descriptions == {"a": "Desc A", "b": "Desc B"}
 
