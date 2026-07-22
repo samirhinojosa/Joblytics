@@ -419,6 +419,11 @@ def test_invalid_after_filtering_triggers_valueerror_header_provider(
         ),
         ("https://www.linkedin.com/feed/", None),
         ("https://example.com/", None),
+        (
+            "https://www.welcometothejungle.com/en/companies/acme/jobs/data-engineer_paris",
+            "https://www.welcometothejungle.com/en/jobs",
+        ),
+        ("https://www.welcometothejungle.com/sitemaps/index.xml.gz", None),
     ],
 )
 def test_header_linkedin_referer_logic_header_provider(

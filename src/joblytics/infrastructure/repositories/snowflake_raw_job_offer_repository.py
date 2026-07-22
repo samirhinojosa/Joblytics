@@ -54,16 +54,9 @@ class SnowflakeRawJobOfferRepository:
         if not offers:
             return 0
 
-        stage = (
-            f"@{self._settings.SNOWFLAKE_RAW_DATABASE}."
-            f"{self._settings.SNOWFLAKE_RAW_SCHEMA}."
-            f"{self._settings.SNOWFLAKE_STAGE}"
-        )
-        table = (
-            f"{self._settings.SNOWFLAKE_RAW_DATABASE}."
-            f"{self._settings.SNOWFLAKE_RAW_SCHEMA}."
-            f"{self._settings.SNOWFLAKE_TABLE}"
-        )
+        target = self._settings.snowflake_raw_target(offers[0].provider)
+        stage = target.stage_ref
+        table = target.table_ref
 
         local_path = self._write_ndjson_gzip(offers)
 
@@ -74,8 +67,8 @@ class SnowflakeRawJobOfferRepository:
                 password=self._settings.SNOWFLAKE_PASSWORD,
                 role=self._settings.SNOWFLAKE_ROLE,
                 warehouse=self._settings.SNOWFLAKE_WAREHOUSE,
-                database=self._settings.SNOWFLAKE_RAW_DATABASE,
-                schema=self._settings.SNOWFLAKE_RAW_SCHEMA,
+                database=target.database,
+                schema=target.schema_name,
             ) as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(

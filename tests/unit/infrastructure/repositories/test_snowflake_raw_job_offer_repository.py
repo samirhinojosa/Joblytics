@@ -14,11 +14,15 @@ from joblytics.infrastructure.repositories.snowflake_raw_job_offer_repository im
 )
 
 
-def _offer(job_id: str) -> RawJobOffer:
+def _offer(job_id: str, provider: str = "linkedin") -> RawJobOffer:
+    url = {
+        "linkedin": "https://www.linkedin.com/jobs/view/",
+        "wttj": "https://www.welcometothejungle.com/en/companies/acme/jobs/",
+    }[provider]
     return RawJobOffer(
-        provider="linkedin",
+        provider=provider,
         provider_job_id=job_id,
-        url=HttpUrl("https://www.linkedin.com/jobs/view/" + job_id),
+        url=HttpUrl(url + job_id),
         title="Data Engineer",
         company="Acme",
     )
@@ -68,8 +72,8 @@ def _settings():
         SNOWFLAKE_PASSWORD="pwd",
         SNOWFLAKE_ROLE="role",
         SNOWFLAKE_WAREHOUSE="wh",
-        SNOWFLAKE_DATABASE="RAW_DB",
-        SNOWFLAKE_SCHEMA="LINKEDIN",
+        SNOWFLAKE_RAW_DATABASE="RAW_DB",
+        SNOWFLAKE_RAW_SCHEMA="LINKEDIN",
         SNOWFLAKE_STAGE="JOBLYTICS_RAW_STAGE",
         SNOWFLAKE_TABLE="RAW_LINKEDIN_JOBS",
     )
@@ -148,6 +152,66 @@ def test_write_ndjson_gzip_produces_one_json_line_per_offer(
         lines = [json.loads(line) for line in fh]
     assert [line["provider_job_id"] for line in lines] == ["1", "2"]
     path.unlink()
+
+
+def test_save_batch_uses_overridden_raw_target(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Proves the SNOWFLAKE_RAW_* overrides are actually live, not just
+    coincidentally matching the class defaults."""
+    monkeypatch.setattr("tempfile.gettempdir", lambda: str(tmp_path))
+
+    sql_calls: list[str] = []
+
+    def fake_connect(**kwargs: Any) -> _FakeConnection:
+        return _FakeConnection(sql_calls, [{"rows_loaded": 1}])
+
+    monkeypatch.setattr("snowflake.connector.connect", fake_connect)
+
+    settings = get_settings(
+        read_env=False,
+        SNOWFLAKE_ACCOUNT="acc",
+        SNOWFLAKE_USER="user",
+        SNOWFLAKE_PASSWORD="pwd",
+        SNOWFLAKE_ROLE="role",
+        SNOWFLAKE_WAREHOUSE="wh",
+        SNOWFLAKE_RAW_DATABASE="OTHER_DB",
+        SNOWFLAKE_RAW_SCHEMA="OTHER_SCHEMA",
+        SNOWFLAKE_STAGE="OTHER_STAGE",
+        SNOWFLAKE_TABLE="OTHER_TABLE",
+    )
+    repository = SnowflakeRawJobOfferRepository(settings)
+
+    repository.save_batch([_offer("1")])
+
+    assert any(
+        "copy into OTHER_DB.OTHER_SCHEMA.OTHER_TABLE" in sql for sql in sql_calls
+    )
+    assert any("@OTHER_DB.OTHER_SCHEMA.OTHER_STAGE" in sql for sql in sql_calls)
+
+
+def test_save_batch_routes_wttj_offers_to_their_own_target(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr("tempfile.gettempdir", lambda: str(tmp_path))
+
+    sql_calls: list[str] = []
+    connect_calls: list[dict[str, Any]] = []
+
+    def fake_connect(**kwargs: Any) -> _FakeConnection:
+        connect_calls.append(kwargs)
+        return _FakeConnection(sql_calls, [{"rows_loaded": 1}])
+
+    monkeypatch.setattr("snowflake.connector.connect", fake_connect)
+
+    repository = SnowflakeRawJobOfferRepository(_settings())
+
+    repository.save_batch([_offer("1", provider="wttj")])
+
+    assert connect_calls[0]["database"] == "RAW_DB"
+    assert connect_calls[0]["schema"] == "WTTJ"
+    assert any("copy into RAW_DB.WTTJ.RAW_WTTJ_JOBS" in sql for sql in sql_calls)
+    assert any("@RAW_DB.WTTJ.JOBLYTICS_RAW_STAGE" in sql for sql in sql_calls)
 
 
 def test_save_batch_wraps_connector_errors(monkeypatch: pytest.MonkeyPatch) -> None:

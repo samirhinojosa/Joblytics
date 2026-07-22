@@ -1,9 +1,14 @@
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 from functools import lru_cache
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from joblytics.core.config.policy import HttpPolicy, PolicyResolver
+from joblytics.core.config.raw_target import (
+    SnowflakeRawTarget,
+    SnowflakeRawTargetResolver,
+)
 
 
 class LogLevel(str, Enum):
@@ -56,7 +61,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "pwd"
     POSTGRES_DB: str = "db"
 
-# Snowflake Credentials (real credentials read from .env)
+    # Snowflake Credentials (real credentials read from .env)
     SNOWFLAKE_ACCOUNT: str = ""
     SNOWFLAKE_USER: str = ""
     SNOWFLAKE_PASSWORD: str = ""
@@ -113,8 +118,54 @@ class Settings(BaseSettings):
                 backoff_factor=1.5,
                 backoff_cap=20.0,
             ),
+            "wttj": HttpPolicy(
+                rate_limit_per_second=0.3,
+                jitter_seconds_min=2.0,
+                jitter_seconds_max=5.0,
+                timeout_connect=5.0,
+                timeout_read=15.0,
+                max_retries=3,
+                backoff_factor=2.0,
+                backoff_cap=30.0,
+            ),
         },
     )
+
+    # --- Snowflake raw (Bronze) landing targets, per provider ---
+    # "default" is kept in sync with the flat SNOWFLAKE_RAW_* fields above
+    # (see _sync_raw_target_default) so existing LinkedIn env-var overrides
+    # keep working unchanged; new providers get an explicit per_provider entry.
+    SNOWFLAKE_RAW_TARGETS: SnowflakeRawTargetResolver = SnowflakeRawTargetResolver(
+        default=SnowflakeRawTarget(
+            database="RAW_DB",
+            schema_name="LINKEDIN",
+            stage="JOBLYTICS_RAW_STAGE",
+            table="RAW_LINKEDIN_JOBS",
+        ),
+        per_provider={
+            "wttj": SnowflakeRawTarget(
+                database="RAW_DB",
+                schema_name="WTTJ",
+                stage="JOBLYTICS_RAW_STAGE",
+                table="RAW_WTTJ_JOBS",
+            ),
+        },
+    )
+
+    @model_validator(mode="after")
+    def _sync_raw_target_default(self) -> Self:
+        """
+        Keep SNOWFLAKE_RAW_TARGETS' default target in sync with the flat
+        SNOWFLAKE_RAW_* fields, so existing env-var overrides for LinkedIn
+        keep resolving exactly as before.
+        """
+        self.SNOWFLAKE_RAW_TARGETS.default = SnowflakeRawTarget(
+            database=self.SNOWFLAKE_RAW_DATABASE,
+            schema_name=self.SNOWFLAKE_RAW_SCHEMA,
+            stage=self.SNOWFLAKE_STAGE,
+            table=self.SNOWFLAKE_TABLE,
+        )
+        return self
 
     def resolve_log_file(self) -> Path:
         p = self.LOG_FILE
@@ -122,6 +173,9 @@ class Settings(BaseSettings):
 
     def http_policy(self, provider: str) -> HttpPolicy:
         return self.HTTP_POLICIES.for_provider(provider)
+
+    def snowflake_raw_target(self, provider: str) -> SnowflakeRawTarget:
+        return self.SNOWFLAKE_RAW_TARGETS.for_provider(provider)
 
 
 class RuntimeSettings(Settings):

@@ -6,6 +6,42 @@ import logging
 
 logger = logging.getLogger("joblytics")
 
+# Per-domain Referer rules: (path substring, Referer value), first match wins.
+# Keyed by domain (not provider name) since that's what's actually present
+# in the URL being requested.
+_DOMAIN_REFERER_RULES: dict[str, list[tuple[str, str]]] = {
+    "linkedin.com": [
+        (
+            "/jobs-guest/jobs/api/seeMoreJobPostings/",
+            "https://www.linkedin.com/jobs/view/",
+        ),
+        ("/jobs-guest/jobs/api/jobPosting/", "https://www.linkedin.com/jobs/search"),
+    ],
+    "welcometothejungle.com": [
+        ("/companies/", "https://www.welcometothejungle.com/en/jobs"),
+    ],
+}
+
+
+def _referer_for(url: str) -> str | None:
+    """
+    Resolve the Referer header value for a request URL, if any.
+
+    Args:
+        url (str): The target request URL.
+
+    Returns:
+        str | None: The matching Referer value, or None if no domain/path
+            rule matches.
+    """
+    for domain, rules in _DOMAIN_REFERER_RULES.items():
+        if domain not in url:
+            continue
+        for path_substring, referer in rules:
+            if path_substring in url:
+                return referer
+    return None
+
 
 class RandomHeaderProvider(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -80,14 +116,8 @@ class RandomHeaderProvider(BaseModel):
             "DNT": "1",  # Do Not Track header (simula un navegador real)
         }
 
-        referer = None
-        if "linkedin" in str(url):
-            if "/jobs-guest/jobs/api/seeMoreJobPostings/" in str(url):
-                referer = "https://www.linkedin.com/jobs/view/"
-            elif "/jobs-guest/jobs/api/jobPosting/" in str(url):
-                referer = "https://www.linkedin.com/jobs/search"
-
-            if referer is not None:
-                header["Referer"] = referer
+        referer = _referer_for(str(url))
+        if referer is not None:
+            header["Referer"] = referer
 
         return header
