@@ -15,5 +15,5 @@ create stage if not exists raw_db.linkedin.joblytics_raw_stage
 
 create table if not exists raw_db.linkedin.raw_linkedin_jobs (
     src_json variant,
-    _loaded_at timestamp_ltz default current_timestamp()
+    _loaded_at timestamp_ltz default current_timestamp(),
 );

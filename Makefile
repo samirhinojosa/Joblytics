@@ -25,7 +25,13 @@ else
 	NC   := \033[0m
 endif
 
-.PHONY: clean clean-all cov cov-strict format fmt help install install-prod lint marimo jupyterlab quality test type
+# Include and export environment variables from .env if the file exists
+ifneq (...,$(wildcard .env))
+    include .env
+    export
+endif
+
+.PHONY: clean clean-all cov cov-strict format fmt help install install-prod lint marimo jupyterlab quality test type dbt-run dbt-debug
 
 define LOG_FILE
 	@LOG_FILE="$$( $(POETRY) run python -c 'from joblytics.core.config.settings import get_settings; \
@@ -79,6 +85,18 @@ install: ## Install everything (main + dev dependencies)
 install-prod: ## Install only production dependencies (no dev)
 	@$(POETRY) install --only main
 	@$(LOG_FILE)
+
+dbt-debug: ## Check dbt connection and environment variables
+	@dbt debug --project-dir dbt_project --profiles-dir dbt_project
+
+dbt-clean: ## Clean dbt artifacts (target, logs, etc.)
+	cd dbt_project && dbt clean --profiles-dir .
+
+dbt-test: ## Run dbt tests
+	cd dbt_project && dbt test --profiles-dir .
+
+dbt-run: ## Run all dbt transformations
+	@dbt run --project-dir dbt_project --profiles-dir dbt_project
 
 marimo: ## Run marimo on a given notebook: NB=my_experiment (will open notebooks/my_experiment.py)
 	@if [ -z "$(NB)" ]; then \

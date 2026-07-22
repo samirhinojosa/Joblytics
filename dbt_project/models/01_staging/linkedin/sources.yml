@@ -1,0 +1,23 @@
+version: 2
+
+sources:
+  - name: linkedin
+    database: RAW_DB
+    schema: LINKEDIN
+    description: >
+      Raw LinkedIn job offers landed via Snowflake internal stage.
+      Payload is landed as-is and cleaned downstream in the staging layer.
+    tables:
+      - name: raw_linkedin_jobs
+        description: Raw JSON payloads stored as VARIANT.
+        columns:
+          - name: src_json
+            description: Raw job offer payload.
+            tests:
+              - not_null
+          - name: file_name
+            description: Staged file name.
+          - name: _loaded_at
+            description: Load timestamp in Snowflake.
+            tests:
+              - not_null

@@ -6,7 +6,7 @@ name: 'dbt_project'
 version: '1.0.0'
 
 # This setting configures which "profile" dbt uses for this project.
-profile: 'dbt_project'
+profile: 'joblytics'
 
 # These configurations specify where dbt should look for different types of files.
 # The `model-paths` config, for example, states that models in this project can be
@@ -31,6 +31,22 @@ clean-targets:         # directories to be removed by `dbt clean`
 # files using the `{{ config(...) }}` macro.
 models:
   dbt_project:
-    # Config indicated by + and applies to all files under models/example/
-    example:
+    # Layer 01: Staging (Ephemeral - In-memory CTEs)
+    01_staging:
       +materialized: view
+      +schema: STAGING
+
+    # # Layer 02: DWH / Silver (Atomic Tables - Star Schema)
+    # 02_dwh:
+    #   +materialized: table
+    #   +schema: DWH
+
+    # # Layer 03: DMT / Gold (Business Aggregations)
+    # 03_dmt:
+    #   +materialized: table
+    #   +schema: DMT
+
+    # # Layer 04: Exposition / Consumer (Clean Views for BI)
+    # 04_exposition:
+    #   +materialized: view
+    #   +schema: EXPOSITION

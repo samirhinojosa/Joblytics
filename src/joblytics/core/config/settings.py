@@ -22,6 +22,9 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
 
+    # Execution Environment
+    APP_ENV: str = "local"
+
     # General information
     APP_NAME: str = "Joblytics"
     DESCRIPTION: str = (
@@ -68,6 +71,7 @@ class Settings(BaseSettings):
 
     # --- Snowflake Infrastructure: Target Analytics (dbt Transformation Layer) ---
     SNOWFLAKE_ANALYTICS_DATABASE: str = "ANALYTICS_DB"
+    SNOWFLAKE_ANALYTICS_SCHEMA: str = "STAGING"
 
     ## User agents file (optional override; infrastructure resolves its own default)
     UA_FILE_PATH: Path | None = None

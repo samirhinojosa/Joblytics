@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: stg_linkedin_jobs
+    description: >
+      Cleaned, typed, and deduplicated LinkedIn job offers.
+      One row per provider_job_id.
+    columns:
+      - name: provider_job_id
+        description: Unique job identifier from LinkedIn.
+        tests:
+          - not_null
+          - unique
+      - name: company_name
+        description: Hiring company name.
+        tests:
+          - not_null
+      - name: job_title
+        description: Job title.
+        tests:
+          - not_null
+      - name: extracted_at
+        description: Ingestion timestamp.
+        tests:
+          - not_null
