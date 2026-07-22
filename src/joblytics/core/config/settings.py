@@ -53,6 +53,19 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "pwd"
     POSTGRES_DB: str = "db"
 
+    # Snowflake credentials (real credentials read from .env)
+    SNOWFLAKE_ACCOUNT: str = ""
+    SNOWFLAKE_USER: str = ""
+    SNOWFLAKE_PASSWORD: str = ""
+    SNOWFLAKE_ROLE: str = ""
+    SNOWFLAKE_WAREHOUSE: str = ""
+
+    # Raw ingestion landing target (Bronze layer)
+    SNOWFLAKE_DATABASE: str = "RAW_DB"
+    SNOWFLAKE_SCHEMA: str = "LINKEDIN"
+    SNOWFLAKE_STAGE: str = "JOBLYTICS_RAW_STAGE"
+    SNOWFLAKE_TABLE: str = "RAW_LINKEDIN_JOBS"
+
     ## User agents file (optional override; infrastructure resolves its own default)
     UA_FILE_PATH: Path | None = None
 

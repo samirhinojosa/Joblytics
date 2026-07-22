@@ -5,6 +5,12 @@ from joblytics.core.config.logger import setup_logging
 from joblytics.core.utils.cli import render_table
 from joblytics.pipelines.base import TimePosted, WorkModality
 from joblytics.domain.exceptions.errors import NoOffersFoundError
+from joblytics.domain.repositories.raw_job_offer_repository import (
+    RawJobOfferRepository,
+)
+from joblytics.infrastructure.repositories.snowflake_raw_job_offer_repository import (
+    SnowflakeRawJobOfferRepository,
+)
 from joblytics.pipelines.linkedin.pipeline import LinkedInPipeline
 
 
@@ -48,6 +54,11 @@ def linkedIn_scrapper(
         "--show-table/--no-show-table",
         help="Enable or disable console table rendering.",
     ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Scrape without writing results to Snowflake.",
+    ),
 ) -> None:
     """
     Extracts job postings from LinkedIn and displays a summary table in the console.
@@ -58,9 +69,18 @@ def linkedIn_scrapper(
         typer.secho(
             f"✨ [LinkedIn] scrape started (title={title}, "
             f"location={location}, time_posted={time_posted.value}, "
-            f"work_modality={work_modality.value}).",
+            f"work_modality={work_modality.value}, dry_run={dry_run}).",
             fg=color,
         )
+
+        repository: RawJobOfferRepository | None = None
+        if dry_run:
+            typer.secho(
+                "🧪 Dry-run mode: results will not be written to Snowflake.",
+                fg=typer.colors.YELLOW,
+            )
+        else:
+            repository = SnowflakeRawJobOfferRepository(get_settings())
 
         pipeline = LinkedInPipeline(
             provider="linkedin",
@@ -68,6 +88,7 @@ def linkedIn_scrapper(
             location=location,
             time_posted=time_posted,
             work_modality=work_modality,
+            repository=repository,
         )
 
         report = pipeline.run()

@@ -94,3 +94,43 @@ def test_linkedin_command_no_show_table_by_default(
 
     assert result.exit_code == 0
     assert "Results preview" not in result.output
+
+
+def test_linkedin_command_dry_run_skips_repository(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    report = _report(produced=1)
+    monkeypatch.setattr(LinkedInPipeline, "run", lambda self: report)
+    constructed = {"count": 0}
+
+    class _FakeRepo:
+        def __init__(self, *args: object, **kwargs: object) -> None:
+            constructed["count"] += 1
+
+    monkeypatch.setattr("joblytics.cli.SnowflakeRawJobOfferRepository", _FakeRepo)
+
+    result = runner.invoke(app, ["linkedin", "Data Engineer", "Paris", "--dry-run"])
+
+    assert result.exit_code == 0
+    assert constructed["count"] == 0
+    assert "Dry-run mode" in result.output
+
+
+def test_linkedin_command_without_dry_run_builds_repository(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    report = _report(produced=1)
+    monkeypatch.setattr(LinkedInPipeline, "run", lambda self: report)
+    constructed = {"count": 0}
+
+    class _FakeRepo:
+        def __init__(self, *args: object, **kwargs: object) -> None:
+            constructed["count"] += 1
+
+    monkeypatch.setattr("joblytics.cli.SnowflakeRawJobOfferRepository", _FakeRepo)
+
+    result = runner.invoke(app, ["linkedin", "Data Engineer", "Paris"])
+
+    assert result.exit_code == 0
+    assert constructed["count"] == 1
+    assert "Dry-run mode" not in result.output

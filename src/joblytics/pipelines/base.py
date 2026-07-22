@@ -6,6 +6,9 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any
 from joblytics.domain.entities.job_offer import RawJobOffer
+from joblytics.domain.repositories.raw_job_offer_repository import (
+    RawJobOfferRepository,
+)
 
 
 # --- Shared orchestration contract (query filters) ---
@@ -62,12 +65,14 @@ class BaseJobPipeline(ABC):
         location: str,
         time_posted: TimePosted,
         work_modality: WorkModality,
+        repository: RawJobOfferRepository | None = None,
     ) -> None:
         self.provider = provider
         self.title = title
         self.location = location
         self.time_posted = time_posted
         self.work_modality = work_modality
+        self.repository = repository
         self.logger = logging.getLogger("joblytics")
         self._errors: list[str] = []
 
@@ -75,19 +80,33 @@ class BaseJobPipeline(ABC):
     def extract_jobs(self) -> list[RawJobOffer]:
         pass
 
-    # def _standardize_data(self, raw_data: List[Any]) -> List[dict]:
-    #     pass
+    def _persist(self, raw_jobs: list[RawJobOffer]) -> int:
+        """
+        Persist raw job offers via the injected repository, if any.
 
-    # def _persist(self, data: List[dict]) -> None:
-    #     """
-    #     Centralize backups in PostgreSQL or CSV.
-    #     """
-    #     self.logger.info(f"💾 Saving {len(data)} jobs in the database.")
-    #     # Common insertion logic across all sites
+        A failure here is logged and recorded but does not fail the pipeline
+        run — the in-memory scrape result must still be returned even if the
+        raw-storage write failed (e.g. a transient Snowflake outage).
 
-    # @abstractmethod
-    # def load(self, items: Sequence[T]) -> int:
-    #     """Persist items and return number of stored records."""
+        Args:
+            raw_jobs (list[RawJobOffer]): Raw job offers produced by extract_jobs().
+
+        Returns:
+            int: Number of offers actually persisted (0 if no repository is
+                configured or if persistence failed).
+        """
+        if self.repository is None or not raw_jobs:
+            return 0
+
+        try:
+            loaded = self.repository.save_batch(raw_jobs)
+            self.logger.info(f"💾 Saved {loaded}/{len(raw_jobs)} jobs to raw storage.")
+            return loaded
+        except Exception as e:
+            error_msg = f"❌ Failed to persist raw job offers: {e}"
+            self.logger.error(error_msg)
+            self._errors.append(error_msg)
+            return 0
 
     def _log_report(self, report: PipelineReport) -> None:
         self.logger.info(
@@ -99,7 +118,7 @@ class BaseJobPipeline(ABC):
     def run(self) -> PipelineReport:
         started_at = datetime.now(timezone.utc)
         produced_count = 0
-        loaded_count = 0  ## --> to modify
+        loaded_count = 0
         sample: list[dict[str, Any]] = []
 
         try:
@@ -113,7 +132,7 @@ class BaseJobPipeline(ABC):
                     for job in raw_jobs[:5]
                 ]
 
-            # loaded_count = self._save_to_db(raw_jobs)
+            loaded_count = self._persist(raw_jobs)
 
             self.logger.info("✅ Process completed.")
 

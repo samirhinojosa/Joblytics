@@ -103,6 +103,13 @@ joblytics linkedin "Data Engineer" Grenoble
 ℹ️ The --show-table flag enables rendering of a formatted summary table in the console output.<br>
 Without this flag, the CLI runs in silent/data mode, suitable for pipelines, cron jobs, and integrations.
 
+#### 🧪 Dry-run (skip Snowflake writes)
+```bash
+joblytics linkedin "Data Engineer" Grenoble --dry-run
+```
+ℹ️ Scrapes and reports results as usual, but skips writing to Snowflake — useful for testing
+filters or verifying scraper behavior without touching raw storage.
+
 ## 🚀 Installation
 
 ### ✅ Development mode (main + dev dependencies)
@@ -133,6 +140,28 @@ POSTGRES_PASSWORD=joblytics_pwd
 POSTGRES_DB=joblytics_db
 ```
 🧠 Tip: keep your `.env` file out of version control if you ever store real credentials.
+
+### ❄️ Snowflake setup (raw ingestion)
+Joblytics loads scraped `RawJobOffer` batches directly into a Snowflake internal stage via
+`PUT` + `COPY INTO` (no S3 in between). Normalization happens downstream in dbt.
+
+#### ⚙️ Environment variables (.env)
+```bash
+# Snowflake credentials
+SNOWFLAKE_ACCOUNT=your_account_identifier
+SNOWFLAKE_USER=joblytics
+SNOWFLAKE_PASSWORD=joblytics_pwd
+SNOWFLAKE_ROLE=your_role
+SNOWFLAKE_WAREHOUSE=your_warehouse
+
+# Landing target (defaults shown)
+SNOWFLAKE_DATABASE=RAW_DB
+SNOWFLAKE_SCHEMA=LINKEDIN
+SNOWFLAKE_STAGE=JOBLYTICS_RAW_STAGE
+SNOWFLAKE_TABLE=RAW_LINKEDIN_JOBS
+```
+🧠 Tip: `RAW_DB.LINKEDIN.JOBLYTICS_RAW_STAGE` and `RAW_DB.LINKEDIN.RAW_LINKEDIN_JOBS` must
+already exist in Snowflake — this loader does not create them.
 
 #### 🚀 Common database (Docker) commands
 | Command                           | Action                               |
