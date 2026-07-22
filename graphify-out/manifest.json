@@ -9,16 +9,6 @@
     "ast_hash": "0063cea9e2c3d43e2b5150d2c23b7929",
     "semantic_hash": "0063cea9e2c3d43e2b5150d2c23b7929"
   },
-  "dbt_project/models/example/my_first_dbt_model.sql": {
-    "mtime": 1784557077.5789454,
-    "ast_hash": "1ef331f8df52e75d870508e63e966159",
-    "semantic_hash": "1ef331f8df52e75d870508e63e966159"
-  },
-  "dbt_project/models/example/my_second_dbt_model.sql": {
-    "mtime": 1784557077.582612,
-    "ast_hash": "b74fa34d8b723a67716b3242002bcb92",
-    "semantic_hash": "b74fa34d8b723a67716b3242002bcb92"
-  },
   "pyproject.toml": {
     "mtime": 1784711399.6883097,
     "ast_hash": "92ed0dabd5c3d59f4c4a9859cef43ce1",
@@ -45,8 +35,8 @@
     "semantic_hash": "a9ca7ddc0999dc617e46f2ef653cfd62"
   },
   "src/joblytics/core/config/settings.py": {
-    "mtime": 1784711405.4591098,
-    "ast_hash": "419d54426cba941c6647eff63b293cf3",
+    "mtime": 1784724402.5800743,
+    "ast_hash": "0999621266e59286f1698ace8fbf5fde",
     "semantic_hash": ""
   },
   "src/joblytics/core/utils/__init__.py": {
@@ -210,13 +200,8 @@
     "semantic_hash": ""
   },
   "dbt_project/dbt_project.yml": {
-    "mtime": 1784703825.9511247,
-    "ast_hash": "c31b9f3cf7ef1790f78995bde8cf231d",
-    "semantic_hash": ""
-  },
-  "dbt_project/models/example/schema.yml": {
-    "mtime": 1784557077.582612,
-    "ast_hash": "e8385a4d1f64d755a1967f1894ad323c",
+    "mtime": 1784728749.811,
+    "ast_hash": "40af1fe293432560392c69c2e153e71f",
     "semantic_hash": ""
   },
   "docker-compose.yml": {
@@ -295,8 +280,8 @@
     "semantic_hash": ""
   },
   "dbt_project/analyses/setup/raw_linkedin_jobs.sql": {
-    "mtime": 1784713332.5617473,
-    "ast_hash": "b9607430fa619a629f09a589204ef143",
+    "mtime": 1784725938.1102335,
+    "ast_hash": "7102155e079b462b21484aa226f59013",
     "semantic_hash": ""
   },
   "src/joblytics/domain/repositories/__init__.py": {
@@ -320,8 +305,8 @@
     "semantic_hash": ""
   },
   "src/joblytics/infrastructure/repositories/snowflake_raw_job_offer_repository.py": {
-    "mtime": 1784711469.7416596,
-    "ast_hash": "0d785d27c44b82934669cdece7c7e513",
+    "mtime": 1784722005.8840325,
+    "ast_hash": "d5f56310aa60a15c7e78836cc76fe613",
     "semantic_hash": ""
   },
   "tests/unit/domain/test_raw_job_offer_repository.py": {
@@ -337,6 +322,191 @@
   "tests/unit/infrastructure/repositories/test_snowflake_raw_job_offer_repository.py": {
     "mtime": 1784711713.996701,
     "ast_hash": "eebfef6bb24ec10405daf18d2e18b582",
+    "semantic_hash": ""
+  },
+  ".claude/settings.local.json": {
+    "mtime": 1784726480.0607963,
+    "ast_hash": "e8349addbf7da6333a60225cc5b1588f",
+    "semantic_hash": ""
+  },
+  ".claude/skills/idea-refine/scripts/idea-refine.sh": {
+    "mtime": 1784727864.7798462,
+    "ast_hash": "7d09d06b836527b5261a27027b1d8548",
+    "semantic_hash": ""
+  },
+  "dbt_project/analyses/setup/analytics_db_setup.sql": {
+    "mtime": 1784728708.192371,
+    "ast_hash": "c7bf8f21e537a012ae53479a058637cd",
+    "semantic_hash": ""
+  },
+  "dbt_project/macros/generate_schema_name.sql": {
+    "mtime": 1784725117.5464284,
+    "ast_hash": "c946c8747b4571fb279e8752b02f2b6a",
+    "semantic_hash": ""
+  },
+  "dbt_project/macros/parse_linkedin_relative_time.sql": {
+    "mtime": 1784725135.4451506,
+    "ast_hash": "a74d76fc277295c75b24a16cfa2d450a",
+    "semantic_hash": ""
+  },
+  "dbt_project/models/01_staging/linkedin/stg_linkedin_jobs.sql": {
+    "mtime": 1784730385.4037292,
+    "ast_hash": "37c6716763885a5401d439e96fe7fa36",
+    "semantic_hash": ""
+  },
+  "skills-lock.json": {
+    "mtime": 1784727864.931617,
+    "ast_hash": "213e3a6573073ec36d950e2753e01a06",
+    "semantic_hash": ""
+  },
+  ".claude/skills/api-and-interface-design/SKILL.md": {
+    "mtime": 1784727864.687985,
+    "ast_hash": "1e7577a49384c2d16eda0954677d6711",
+    "semantic_hash": ""
+  },
+  ".claude/skills/browser-testing-with-devtools/SKILL.md": {
+    "mtime": 1784727864.695973,
+    "ast_hash": "639b3e0f3bae1118b986269fb7bd5e87",
+    "semantic_hash": ""
+  },
+  ".claude/skills/ci-cd-and-automation/SKILL.md": {
+    "mtime": 1784727864.703961,
+    "ast_hash": "6a3b179662eb6f3b434bb3e95201d45f",
+    "semantic_hash": ""
+  },
+  ".claude/skills/code-review-and-quality/SKILL.md": {
+    "mtime": 1784727864.707955,
+    "ast_hash": "096f63edff9c9d3101f29a1e31fd3525",
+    "semantic_hash": ""
+  },
+  ".claude/skills/code-simplification/SKILL.md": {
+    "mtime": 1784727864.7159429,
+    "ast_hash": "239dbb2a2f3caca0de086f7e0e0ebb03",
+    "semantic_hash": ""
+  },
+  ".claude/skills/context-engineering/SKILL.md": {
+    "mtime": 1784727864.7239308,
+    "ast_hash": "51c73a9d507cfdf45bb2fc10742fe147",
+    "semantic_hash": ""
+  },
+  ".claude/skills/debugging-and-error-recovery/SKILL.md": {
+    "mtime": 1784727864.7279246,
+    "ast_hash": "12d41c57d8bb597c6f738f5d4ce9ef27",
+    "semantic_hash": ""
+  },
+  ".claude/skills/deprecation-and-migration/SKILL.md": {
+    "mtime": 1784727864.7359126,
+    "ast_hash": "9469f95c323f34e3ef4784b20fb85c9f",
+    "semantic_hash": ""
+  },
+  ".claude/skills/documentation-and-adrs/SKILL.md": {
+    "mtime": 1784727864.7399065,
+    "ast_hash": "e858e2365af5c803a0c99822220837e5",
+    "semantic_hash": ""
+  },
+  ".claude/skills/doubt-driven-development/SKILL.md": {
+    "mtime": 1784727864.7478945,
+    "ast_hash": "e586f44ec292216123a8c4486c3f32e0",
+    "semantic_hash": ""
+  },
+  ".claude/skills/frontend-ui-engineering/SKILL.md": {
+    "mtime": 1784727864.7558825,
+    "ast_hash": "6bc70d6d97160d01b9d7ffbb9f2112ac",
+    "semantic_hash": ""
+  },
+  ".claude/skills/git-workflow-and-versioning/SKILL.md": {
+    "mtime": 1784727864.7638705,
+    "ast_hash": "54a50c2845cc3471ed5e977d9deeab3c",
+    "semantic_hash": ""
+  },
+  ".claude/skills/idea-refine/SKILL.md": {
+    "mtime": 1784727864.7758522,
+    "ast_hash": "7af2490cfd895ad7d419e6112985f4b3",
+    "semantic_hash": ""
+  },
+  ".claude/skills/idea-refine/examples.md": {
+    "mtime": 1784727864.7758522,
+    "ast_hash": "8e3e911c980f371e695e786d5b22b495",
+    "semantic_hash": ""
+  },
+  ".claude/skills/idea-refine/frameworks.md": {
+    "mtime": 1784727864.7758522,
+    "ast_hash": "fa20786abdfa9de40c6886a8d7c958f2",
+    "semantic_hash": ""
+  },
+  ".claude/skills/idea-refine/refinement-criteria.md": {
+    "mtime": 1784727864.7758522,
+    "ast_hash": "5ce82e7acc7b4b2b9dcd843fb9dcd1d6",
+    "semantic_hash": ""
+  },
+  ".claude/skills/incremental-implementation/SKILL.md": {
+    "mtime": 1784727864.7838402,
+    "ast_hash": "3f597d1cf25303599ce8caf52e526c1d",
+    "semantic_hash": ""
+  },
+  ".claude/skills/interview-me/SKILL.md": {
+    "mtime": 1784727864.7918282,
+    "ast_hash": "9d57d4cd52197bad45adefee66226088",
+    "semantic_hash": ""
+  },
+  ".claude/skills/observability-and-instrumentation/SKILL.md": {
+    "mtime": 1784727864.7998161,
+    "ast_hash": "c3d1156d3cb5f4050fcec0001074b9d3",
+    "semantic_hash": ""
+  },
+  ".claude/skills/performance-optimization/SKILL.md": {
+    "mtime": 1784727864.8038101,
+    "ast_hash": "2e72ac29dae00848fdab1c29430ea779",
+    "semantic_hash": ""
+  },
+  ".claude/skills/planning-and-task-breakdown/SKILL.md": {
+    "mtime": 1784727864.807804,
+    "ast_hash": "c94af49d92d0ebb9214fd71620c1c83f",
+    "semantic_hash": ""
+  },
+  ".claude/skills/security-and-hardening/SKILL.md": {
+    "mtime": 1784727864.815792,
+    "ast_hash": "7e033038ad727bec978d24324084d6c2",
+    "semantic_hash": ""
+  },
+  ".claude/skills/shipping-and-launch/SKILL.md": {
+    "mtime": 1784727864.819786,
+    "ast_hash": "4e9a6fec3d5f87dec44a03d6b681f58b",
+    "semantic_hash": ""
+  },
+  ".claude/skills/source-driven-development/SKILL.md": {
+    "mtime": 1784727864.8277738,
+    "ast_hash": "eec37f9aa8f509c88ea59b82addcc971",
+    "semantic_hash": ""
+  },
+  ".claude/skills/spec-driven-development/SKILL.md": {
+    "mtime": 1784727864.8317678,
+    "ast_hash": "ec01faac50c513c9b0bd6a2c75e9f558",
+    "semantic_hash": ""
+  },
+  ".claude/skills/test-driven-development/SKILL.md": {
+    "mtime": 1784727864.8477437,
+    "ast_hash": "ad8b3f2308511dba98445be80af010d4",
+    "semantic_hash": ""
+  },
+  ".claude/skills/using-agent-skills/SKILL.md": {
+    "mtime": 1784727864.8517377,
+    "ast_hash": "c766c1c019b3dc25a43a3c051c22a58c",
+    "semantic_hash": ""
+  },
+  "dbt_project/models/01_staging/linkedin/schema.yml": {
+    "mtime": 1784725283.9655037,
+    "ast_hash": "f39c716ce27241eeb2fd9aa9b1286a03",
+    "semantic_hash": ""
+  },
+  "dbt_project/models/01_staging/linkedin/sources.yml": {
+    "mtime": 1784730536.9704664,
+    "ast_hash": "47a7165a7c1d8c8ed9b116672b8d4817",
+    "semantic_hash": ""
+  },
+  "specs/wttj-scraper.md": {
+    "mtime": 1784728799.2012925,
+    "ast_hash": "b02bfb51362dc4cbee434f08f53a0b7c",
     "semantic_hash": ""
   }
 }

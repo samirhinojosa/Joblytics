@@ -1,8 +1,5 @@
 # Claude Code local configuration
 !.claude/settings.local.json
-.claude/
-skills-lock.json
-specs/
 
 # Local profiles and user configuration for dbt
 dbt_project/profiles.yml
